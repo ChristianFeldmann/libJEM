@@ -7,7 +7,7 @@ build:
   project: build\JEM_vc2017.sln   # path to Visual Studio solution or project
 
 artifacts:
-  - path: bin\vc10\x64\Release\libHMDecoder.dll
+  - path: bin\vc2017\x64\Release\libJEMDecoder.dll
 
 deploy:
   provider: GitHub
