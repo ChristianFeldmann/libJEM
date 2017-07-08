@@ -4,7 +4,9 @@
 
 ifneq ($(CONFIG), LIBRARY)
 ifneq ($(CONFIG), CONSOLE)
+ifneq ($(CONFIG), LIBSHARED)
 CONFIG_ERR = TRUE
+endif
 endif
 endif
 
@@ -29,7 +31,21 @@ STAT_RELEASE_OUT  	= $(LIB_DIR)/lib$(PRJ_NAME)Static.a
 DYN_DEBUG_OUT     	= $(LIB_DIR)/lib$(PRJ_NAME)d.so
 DYN_RELEASE_OUT   	= $(LIB_DIR)/lib$(PRJ_NAME).so
 #
-else 
+else
+ifeq ($(CONFIG), LIBSHARED)
+# the libraries that can be created
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	STAT_DEBUG_OUT    	= $(LIB_DIR)/lib$(PRJ_NAME)Staticd.dylib
+	STAT_RELEASE_OUT  	= $(LIB_DIR)/lib$(PRJ_NAME)Static.dylib
+else
+	STAT_DEBUG_OUT    	= $(LIB_DIR)/lib$(PRJ_NAME)Staticd.so
+	STAT_RELEASE_OUT  	= $(LIB_DIR)/lib$(PRJ_NAME)Static.so
+endif
+DYN_DEBUG_OUT     	= $(LIB_DIR)/lib$(PRJ_NAME)d.so
+DYN_RELEASE_OUT   	= $(LIB_DIR)/lib$(PRJ_NAME).so
+#
+else
 ifeq ($(CONFIG), CONSOLE)
 # the executables that can be created
 STAT_DEBUG_OUT    = $(BIN_DIR)/$(PRJ_NAME)Staticd
@@ -37,6 +53,7 @@ STAT_RELEASE_OUT  = $(BIN_DIR)/$(PRJ_NAME)Static
 DYN_DEBUG_OUT     = $(BIN_DIR)/$(PRJ_NAME)d
 DYN_RELEASE_OUT   = $(BIN_DIR)/$(PRJ_NAME)
 #
+endif
 endif
 endif
 
@@ -47,9 +64,9 @@ endif
 
 # default cpp flags for all configurations
 #CPPFLAGS          = -Wall $(DEFS) -I$(CURDIR)/$(INC_DIR) $(USER_INC_DIRS)
-CPPFLAGS          = $(DEFS) -I$(CURDIR)/$(INC_DIR) $(USER_INC_DIRS) -Wall -Wshadow -Wno-sign-compare -Werror
+CPPFLAGS          = $(DEFS) -I$(CURDIR)/$(INC_DIR) $(USER_INC_DIRS) -Wall -Wshadow -Wno-sign-compare -Werror -fPIC
 
-########## 
+##########
 # enforce 32-bit build : 1=yes, 0=no
 ##########
 M32?= 0
@@ -92,7 +109,7 @@ RELEASE_ASMFLAGS  =
 # linker flags for all
 ALL_LDFLAGS       = -Wall
 
-########## 
+##########
 # enforce 32-bit build : 1=yes, 0=no
 ##########
 ifeq ($(M32),1)
@@ -113,6 +130,18 @@ DEBUG_LDFLAGS     = -Wl,-soname,lib$(PRJ_NAME)d.so.$(VER)
 RELEASE_LDFLAGS   = -Wl,-soname,lib$(PRJ_NAME).so.$(VER)
 #
 else
+ifeq ($(CONFIG), LIBSHARED)
+# linker flags for shared libshared
+# LDFLAGS           = $(ALL_LDFLAGS) -shared -Wl,-Bsymbolic
+LDFLAGS           = $(ALL_LDFLAGS) -shared
+#
+# debug linker flags for libshared
+DEBUG_LDFLAGS     =
+#
+# release linker flags for libshared
+RELEASE_LDFLAGS   =
+#
+else
 ifeq ($(CONFIG), CONSOLE)
 # linker flags for console
 LDFLAGS           = $(ALL_LDFLAGS)
@@ -123,6 +152,7 @@ DEBUG_LDFLAGS     =
 # release linker flags for console
 RELEASE_LDFLAGS   =
 #
+endif
 endif
 endif
 
@@ -317,10 +347,16 @@ ifeq ($(CONFIG), LIBRARY)
 CHECK_DIRS = $(OBJ_DIR) $(LIB_DIR)
 #
 else
+ifeq ($(CONFIG), LIBSHARED)
+# directories that have to be created for a libshared
+CHECK_DIRS = $(OBJ_DIR) $(LIB_DIR)
+#
+else
 ifeq ($(CONFIG), CONSOLE)
 # directories that have to be created for console and MFC
 CHECK_DIRS = $(OBJ_DIR) $(BIN_DIR)
 #
+endif
 endif
 endif
 
@@ -437,6 +473,40 @@ $(DYN_RELEASE_OUT).$(VER): $(RELEASE_OBJS)
 #
 #
 else
+ifeq ($(CONFIG), LIBSHARED)
+#
+# create static debug out
+$(STAT_DEBUG_OUT): $(DEBUG_OBJS)
+	$(LD) $(LDFLAGS) $(DEBUG_LDFLAGS) -o $@ $(DEBUG_OBJS) -L$(LIB_DIR) $(USER_LIB_DIRS) $(LIBS) $(DEBUG_LIBS) $(DYN_LIBS) $(STAT_DEBUG_LIBS)
+#
+#
+# create release debug out
+$(STAT_RELEASE_OUT): $(RELEASE_OBJS)
+	$(LD) $(LDFLAGS) $(RELEASE_LDFLAGS) -o $@ $(RELEASE_OBJS) -L$(LIB_DIR) $(USER_LIB_DIRS) $(LIBS) $(RELEASE_LIBS) $(DYN_LIBS) $(STAT_RELEASE_LIBS)
+#
+#
+# create dynamic debug out
+$(DYN_DEBUG_OUT): $(DYN_DEBUG_OUT).$(VER)
+	ln -fs lib$(PRJ_NAME)d.so.$(VER) $@
+#
+# create dynamic debug out
+$(DYN_DEBUG_OUT).$(VER): $(DEBUG_OBJS)
+	$(LD) $(LDFLAGS) $(DEBUG_LDFLAGS) -o $@ $(DEBUG_OBJS) -L$(LIB_DIR) $(USER_LIB_DIRS) $(LIBS) $(DEBUG_LIBS) $(DYN_LIBS) $(DYN_DEBUG_LIBS)
+#
+#
+# create dynamic release out
+$(DYN_RELEASE_OUT): $(DYN_RELEASE_OUT).$(VER)
+	ln -fs lib$(PRJ_NAME).so.$(VER) $@
+#
+# create dynamic release out
+$(DYN_RELEASE_OUT).$(VER): $(RELEASE_OBJS)
+	$(LD) $(LDFLAGS) $(RELEASE_LDFLAGS) -o $@ $(RELEASE_OBJS) -L$(LIB_DIR) $(USER_LIB_DIRS) $(LIBS) $(RELEASE_LIBS) $(DYN_LIBS) $(DYN_RELEASE_LIBS)
+#
+#
+#
+#
+#
+else
 ifeq ($(CONFIG), CONSOLE)
 #
 # added linked libraries to target prerequisites - $(*_PREREQS) variables - to force relinking when libraries have been rebuilt
@@ -464,6 +534,7 @@ $(DYN_RELEASE_OUT): $(RELEASE_OBJS) $(DYN_RELEASE_PREREQS)
 #
 endif
 endif
+endif
 
 ##########################################################
 # delete all produced files
@@ -480,7 +551,10 @@ ifeq ($(CONFIG), LIBRARY)
 	/bin/rm -rf $(DYN_DEBUG_OUT).$(VER)
 	/bin/rm -rf $(DYN_RELEASE_OUT).$(VER)
 endif
-
+ifeq ($(CONFIG), LIBSHARED)
+	/bin/rm -rf $(DYN_DEBUG_OUT).$(VER)
+	/bin/rm -rf $(DYN_RELEASE_OUT).$(VER)
+endif
 
 ##########################################################
 # include dependency files
