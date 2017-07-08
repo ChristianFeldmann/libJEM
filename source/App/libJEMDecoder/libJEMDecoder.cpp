@@ -1006,14 +1006,14 @@ extern "C" {
     if (s == NULL)
       return NULL;
 
-    int nrCU = s->getNumberOfCtusInFrame();
-    int i = 0;
-    if (d->pauseInternalsCUIdx != -1)
-    {
-      // Continue from the given index.
-      i = d->pauseInternalsCUIdx;
-      d->pauseInternalsCUIdx = -1;
-    }
+    //int nrCU = s->getNumberOfCtusInFrame();
+    //int i = 0;
+    //if (d->pauseInternalsCUIdx != -1)
+    //{
+    //  // Continue from the given index.
+    //  i = d->pauseInternalsCUIdx;
+    //  d->pauseInternalsCUIdx = -1;
+    //}
 
     // Retrieving of internals not yet supported.
     //for (; i < nrCU; i++)
