@@ -23,6 +23,7 @@
     <ProjectGuid>{47E90995-1FC5-4EE4-A94D-AD474169F0E1}</ProjectGuid>
     <RootNamespace>TLibEncoder</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">

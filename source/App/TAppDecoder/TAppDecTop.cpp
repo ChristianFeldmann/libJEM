@@ -275,7 +275,7 @@ Void TAppDecTop::xCreateDecLib()
   // create decoder class
   m_cTDecTop.create();
 #if VCEG_AZ07_INIT_PREVFRAME
-  m_apcStats = new TComStats (1, NUM_CTX_PBSLICE);  
+  m_apcStats = new TComStats (1, NUM_CTX_PBSLICE);
 #elif VCEG_AZ07_BAC_ADAPT_WDOW
   m_apcStats = new TComStats; 
 #endif

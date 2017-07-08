@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 13.00
-# Visual Studio 2015
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.14
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TAppDecoder", "vc2017\TAppDecoder_vc2017.vcxproj", "{A7A515D9-E917-4706-BD5B-57DC6C78D612}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TAppEncoder", "vc2017\TAppEncoder_vc2017.vcxproj", "{D759E4E1-D33A-4483-B57B-0FD248E022FE}"
@@ -20,6 +22,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TLibDecoderAnalyser", "vc2017\TLibDecoderAnalyser_vc2017.vcxproj", "{68C1251A-55D8-47C9-9052-62F785BD437A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Parcat", "vc2017\Parcat_vc2017.vcxproj", "{4D16A18D-37FA-4EBC-95F4-D4411839AB83}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libJEMDecoder", "vc2017\libJEMDecoder_vc10.vcxproj", "{ABCDE51A-55D8-47C9-9052-62F785BD437A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -109,6 +113,14 @@ Global
 		{4D16A18D-37FA-4EBC-95F4-D4411839AB83}.Release|Win32.Build.0 = Release|Win32
 		{4D16A18D-37FA-4EBC-95F4-D4411839AB83}.Release|x64.ActiveCfg = Release|x64
 		{4D16A18D-37FA-4EBC-95F4-D4411839AB83}.Release|x64.Build.0 = Release|x64
+		{ABCDE51A-55D8-47C9-9052-62F785BD437A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ABCDE51A-55D8-47C9-9052-62F785BD437A}.Debug|Win32.Build.0 = Debug|Win32
+		{ABCDE51A-55D8-47C9-9052-62F785BD437A}.Debug|x64.ActiveCfg = Debug|x64
+		{ABCDE51A-55D8-47C9-9052-62F785BD437A}.Debug|x64.Build.0 = Debug|x64
+		{ABCDE51A-55D8-47C9-9052-62F785BD437A}.Release|Win32.ActiveCfg = Release|Win32
+		{ABCDE51A-55D8-47C9-9052-62F785BD437A}.Release|Win32.Build.0 = Release|Win32
+		{ABCDE51A-55D8-47C9-9052-62F785BD437A}.Release|x64.ActiveCfg = Release|x64
+		{ABCDE51A-55D8-47C9-9052-62F785BD437A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
