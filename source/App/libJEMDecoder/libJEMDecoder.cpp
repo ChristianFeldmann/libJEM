@@ -198,10 +198,11 @@ extern "C" {
     }
     else
     {
+      int poc;
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
-      bNewPicture = d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, d->apcStats);
+      bNewPicture = d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, false, poc, d->apcStats);
 #else
-      bNewPicture = d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay);
+      bNewPicture = d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, false, poc);
 #endif
       if (bNewPicture)
       {
@@ -300,6 +301,72 @@ extern "C" {
       d->pcListPic_readIdx = 0;
 
     return LIBJEMDEC_OK;
+  }
+
+  JEM_DEC_API libJEMDec_error libJEMDec_get_nal_unit_info(libJEMDec_context *decCtx, const void* data8, int length, bool eof, int &poc, bool &isRAP, bool &isParameterSet)
+  {
+    jemDecoderWrapper *d = (jemDecoderWrapper*)decCtx;
+    if (!d)
+      return LIBJEMDEC_ERROR;
+
+    if (length <= 0)
+      return LIBJEMDEC_ERROR_READ_ERROR;
+
+    // Check the NAL unit header
+    uint8_t *data = (uint8_t*)data8;
+    if (length < 4 && !eof)
+      return LIBJEMDEC_ERROR_READ_ERROR;
+
+    // Do not copy the start code (if present)
+    int copyStart = 0;
+    if (data[0] == 0 && data[1] == 1 && data[2] == 1)
+      copyStart = 3;
+    else if (data[0] == 0 && data[1] == 0 && data[2] == 0 && data[3] == 1)
+
+      copyStart = 4;
+    // Create a new NAL unit and put the payload into the nal units buffer
+    InputNALUnit nalu;
+    TComInputBitstream &bitstream = nalu.getBitstream();
+    vector<uint8_t>& nalUnitBuf = bitstream.getFifo();
+    for (int i = 0; i < copyStart; i++)
+      data++;
+    for (int i = 0; i < length - copyStart; i++)
+    {
+      nalUnitBuf.push_back(*data);
+      data++;
+    }
+
+    // Read the NAL unit and parse the NAL unit header
+    read(nalu);
+
+    // Set the default return values
+    poc = -1;
+    isRAP = false;
+    isParameterSet = false;
+      
+
+    if( (d->maxTemporalLayer >= 0 && nalu.m_temporalId > d->maxTemporalLayer) || !isNaluWithinTargetDecLayerIdSet(&nalu)  )
+    {
+      // We do not parse the NAL unit.
+      return LIBJEMDEC_OK;
+    }
+    else
+    {
+      // We will parse the NAL unit. This NAL might be part of a new picture that generates an output picture.
+      // Get the POC of this picture.
+#if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
+      d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, true, poc, d->apcStats);
+#else
+      d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, true, poc);
+#endif
+
+      isRAP = (nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_BLA_W_LP   || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_BLA_W_RADL ||
+               nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_BLA_N_LP   || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_W_RADL ||
+               nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_N_LP   || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_CRA        ||
+               nalu.m_nalUnitType == NAL_UNIT_RESERVED_IRAP_VCL22    || nalu.m_nalUnitType == NAL_UNIT_RESERVED_IRAP_VCL23);
+      isParameterSet = (nalu.m_nalUnitType == NAL_UNIT_VPS || nalu.m_nalUnitType == NAL_UNIT_SPS || nalu.m_nalUnitType == NAL_UNIT_PPS);
+      return LIBJEMDEC_OK;
+    }
   }
 
   JEM_DEC_API libJEMDec_picture *libJEMDec_get_picture(libJEMDec_context* decCtx)

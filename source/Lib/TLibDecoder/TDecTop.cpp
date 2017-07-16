@@ -495,7 +495,7 @@ Void TDecTop::xParsePrefixSEImessages()
 }
 
 
-Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay
+Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay, Bool bParseOnly, Int& iPOC
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
                          , TComStats*  m_apcStats
 #endif
@@ -503,6 +503,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
 {
   m_apcSlicePilot->initSlice(); // the slice pilot is an object to prepare for a new slice
                                 // it is not associated with picture, sps or pps structures.
+  iPOC = -1;
 
   if (m_bFirstSliceInPicture)
   {
@@ -601,6 +602,13 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
     xUpdatePreviousTid0POC(m_apcSlicePilot);
   }
 
+  if (bParseOnly)
+  {
+    // We just wanred to parese the slice header
+    iPOC = m_apcSlicePilot->getPOC();
+    return false;
+  }
+
   // Skip pictures due to random access
 
   if (isRandomAccessSkipPicture(iSkipFrame, iPOCLastDisplay))
@@ -629,7 +637,8 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   // exit when a new picture is found
   if (!m_apcSlicePilot->getDependentSliceSegmentFlag() && (m_apcSlicePilot->getSliceCurStartCtuTsAddr() == 0 && !m_bFirstSliceInPicture) )
   {
-    if (m_prevPOC >= m_pocRandomAccess)
+    // No need to rewind if we are just parsing the NAL units
+    if (m_prevPOC >= m_pocRandomAccess && !bParseOnly)
     {
       m_prevPOC = m_apcSlicePilot->getPOC();
 #if ENC_DEC_TRACE
@@ -787,7 +796,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   }
 #endif
 
-  //  Decode a picture
+    //  Decode a picture
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
   m_cGopDecoder.decompressSlice(&(nalu.getBitstream()), m_pcPic, m_apcStats);
 #else
@@ -825,7 +834,7 @@ Void TDecTop::xDecodePPS(const std::vector<UChar> &naluData)
   m_parameterSetManager.storePPS( pps, naluData);
 }
 
-Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay
+Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay, Bool bParseOnly, Int& iPOC
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
                    , TComStats*  m_apcStats
 #endif
@@ -888,9 +897,9 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay
     case NAL_UNIT_CODED_SLICE_RASL_N:
     case NAL_UNIT_CODED_SLICE_RASL_R:
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
-      return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay, m_apcStats);
+      return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay, bParseOnly, iPOC, m_apcStats);
 #else
-      return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay);
+      return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay, bParseOnly, iPOC);
 #endif
       break;
 

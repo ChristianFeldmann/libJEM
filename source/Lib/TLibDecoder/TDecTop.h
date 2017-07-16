@@ -128,7 +128,7 @@ public:
   Void setDecodedPictureHashSEIEnabled(Int enabled) { m_cGopDecoder.setDecodedPictureHashSEIEnabled(enabled); }
 
   Void  init();
-  Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay
+  Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay, Bool bParseOnly, Int& iPOC
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
              , TComStats*  m_apcStats
 #endif
@@ -158,9 +158,9 @@ protected:
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
 #if VCEG_AZ07_BAC_ADAPT_WDOW
 #endif
-  Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay, TComStats*  m_apcStats);
+  Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay, Bool bParseOnly, Int& iPOC, TComStats* m_apcStats);
 #else
-  Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay);
+  Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay, Bool bParseOnly, Int& iPOC);
 #endif
   Void      xDecodeVPS(const std::vector<UChar> &naluData);
   Void      xDecodeSPS(const std::vector<UChar> &naluData);

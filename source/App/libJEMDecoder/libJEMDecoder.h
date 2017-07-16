@@ -152,6 +152,22 @@ JEM_DEC_API void libJEMDec_set_max_temporal_layer(libJEMDec_context* decCtx, int
  */
 JEM_DEC_API libJEMDec_error libJEMDec_push_nal_unit(libJEMDec_context *decCtx, const void* data8, int length, bool eof, bool &bNewPicture, bool &checkOutputPictures);
 
+/** Parse the given NAL unit and return the POC of the NAL, or -1 if the NAL does not produce an output picture.
+ * The NAL must be excluding the start code but including the NAL unit header.
+ * No actual decoding of the NAL unit is performed.
+ * \param decCtx The decoder context that was created with libJEMDec_new_decoder
+ * \param data8 The raw byte data from the NAL unit starting with the first byte of the NAL unit header.
+ * \param length The length in number of bytes in the data
+ * \param eof Is this NAL the last one in the bitstream?
+ * \param bNewPicture This bool is set by the function if the NAL unit must be pushed to the decoder again after reading frames.
+ * \param checkOutputPictures This bool is set by the function if pictures might be available (see libJEMDec_get_picture).
+ * \param poc Returns the POC of the given NAL unit
+ * \param isRAP is set if this NAL us a random access point
+ * \param isParameterSet is set if this NAL is a parameter set
+ * \return An error code or LIBJEMDEC_OK if no error occured
+ */
+JEM_DEC_API libJEMDec_error libJEMDec_get_nal_unit_info(libJEMDec_context *decCtx, const void* data8, int length, bool eof, int &poc, bool &isRAP, bool &isParameterSet);
+
 /** This private structure represents a picture.
  * You can save a pointer to it and use all the following functions to access it
  * but it is not further defined as part of the public API.

@@ -167,10 +167,11 @@ Void TAppDecTop::decode()
       }
       else
       {
+        Int iPOC;
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
-        bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay, m_apcStats);     
+        bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay, false, iPOC, m_apcStats);
 #else
-        bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
+        bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay, false, iPOC);
 #endif
         if (bNewPicture)
         {
