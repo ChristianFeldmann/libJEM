@@ -128,11 +128,18 @@ public:
   Void setDecodedPictureHashSEIEnabled(Int enabled) { m_cGopDecoder.setDecodedPictureHashSEIEnabled(enabled); }
 
   Void  init();
-  Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay, Bool bParseOnly, Int& iPOC
+  Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
              , TComStats*  m_apcStats
 #endif
-    );
+  );
+
+  Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay, Bool bParseOnly
+#if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
+             , TComStats*  m_apcStats
+#endif
+    , Int& iPOC, int &picWidthLumaSamples, int &picHeightLumaSamples, int &bitDepthLuma, int &bitDepthChroma, ChromaFormat &chromaFormat);
+
   Void  deletePicBuffer();
 
   
@@ -163,7 +170,7 @@ protected:
   Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay, Bool bParseOnly, Int& iPOC);
 #endif
   Void      xDecodeVPS(const std::vector<UChar> &naluData);
-  Void      xDecodeSPS(const std::vector<UChar> &naluData);
+  TComSPS  *xDecodeSPS(const std::vector<UChar> &naluData);
   Void      xDecodePPS(const std::vector<UChar> &naluData);
   Void      xUpdatePreviousTid0POC( TComSlice *pSlice ) { if ((pSlice->getTLayer()==0) && (pSlice->isReferenceNalu() && (pSlice->getNalUnitType()!=NAL_UNIT_CODED_SLICE_RASL_R)&& (pSlice->getNalUnitType()!=NAL_UNIT_CODED_SLICE_RADL_R))) { m_prevTid0POC=pSlice->getPOC(); } }
   Void      xParsePrefixSEImessages();

@@ -198,11 +198,10 @@ extern "C" {
     }
     else
     {
-      int poc;
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
-      bNewPicture = d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, false, poc, d->apcStats);
+      bNewPicture = d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, d->apcStats);
 #else
-      bNewPicture = d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, false, poc);
+      bNewPicture = d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay);
 #endif
       if (bNewPicture)
       {
@@ -303,7 +302,7 @@ extern "C" {
     return LIBJEMDEC_OK;
   }
 
-  JEM_DEC_API libJEMDec_error libJEMDec_get_nal_unit_info(libJEMDec_context *decCtx, const void* data8, int length, bool eof, int &poc, bool &isRAP, bool &isParameterSet)
+  JEM_DEC_API libJEMDec_error libJEMDec_get_nal_unit_info(libJEMDec_context *decCtx, const void* data8, int length, bool eof, int &poc, bool &isRAP, bool &isParameterSet, int &picWidthLumaSamples, int &picHeightLumaSamples, int &bitDepthLuma, int &bitDepthChroma, libJEMDec_ChromaFormat &chromaFormat)
   {
     jemDecoderWrapper *d = (jemDecoderWrapper*)decCtx;
     if (!d)
@@ -343,7 +342,11 @@ extern "C" {
     poc = -1;
     isRAP = false;
     isParameterSet = false;
-      
+    picWidthLumaSamples = -1;
+    picHeightLumaSamples = -1;
+    bitDepthLuma = -1;
+    bitDepthChroma = -1;
+    chromaFormat = LIBJEMDEC_CHROMA_UNKNOWN;
 
     if( (d->maxTemporalLayer >= 0 && nalu.m_temporalId > d->maxTemporalLayer) || !isNaluWithinTargetDecLayerIdSet(&nalu)  )
     {
@@ -354,17 +357,30 @@ extern "C" {
     {
       // We will parse the NAL unit. This NAL might be part of a new picture that generates an output picture.
       // Get the POC of this picture.
+      ChromaFormat c = NUM_CHROMA_FORMAT;
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
-      d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, true, poc, d->apcStats);
+      d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, true, d->apcStats, poc, picWidthLumaSamples, picHeightLumaSamples, bitDepthLuma, bitDepthChroma, c);
 #else
-      d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, true, poc);
+      d->decTop.decode(nalu, d->iSkipFrame, d->iPOCLastDisplay, true, poc, picWidthLumaSamples, picHeightLumaSamples, bitDepthLuma, bitDepthChroma, c);
 #endif
 
+      // Set the values
       isRAP = (nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_BLA_W_LP   || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_BLA_W_RADL ||
                nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_BLA_N_LP   || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_W_RADL ||
                nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR_N_LP   || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_CRA        ||
                nalu.m_nalUnitType == NAL_UNIT_RESERVED_IRAP_VCL22    || nalu.m_nalUnitType == NAL_UNIT_RESERVED_IRAP_VCL23);
       isParameterSet = (nalu.m_nalUnitType == NAL_UNIT_VPS || nalu.m_nalUnitType == NAL_UNIT_SPS || nalu.m_nalUnitType == NAL_UNIT_PPS);
+      if (c == CHROMA_400)
+        chromaFormat = LIBJEMDEC_CHROMA_400;
+      else if (c == CHROMA_420)
+        chromaFormat = LIBJEMDEC_CHROMA_420;
+      else if (c == CHROMA_422)
+        chromaFormat = LIBJEMDEC_CHROMA_422;
+      else if (c == CHROMA_444)
+        chromaFormat = LIBJEMDEC_CHROMA_444;
+      else
+        chromaFormat = LIBJEMDEC_CHROMA_UNKNOWN;
+
       return LIBJEMDEC_OK;
     }
   }

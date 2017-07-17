@@ -817,7 +817,7 @@ Void TDecTop::xDecodeVPS(const std::vector<UChar> &naluData)
   m_parameterSetManager.storeVPS(vps, naluData);
 }
 
-Void TDecTop::xDecodeSPS(const std::vector<UChar> &naluData)
+TComSPS *TDecTop::xDecodeSPS(const std::vector<UChar> &naluData)
 {
   TComSPS* sps = new TComSPS();
 #if O0043_BEST_EFFORT_DECODING
@@ -825,6 +825,8 @@ Void TDecTop::xDecodeSPS(const std::vector<UChar> &naluData)
 #endif
   m_cEntropyDecoder.decodeSPS( sps );
   m_parameterSetManager.storeSPS(sps, naluData);
+
+  return sps;
 }
 
 Void TDecTop::xDecodePPS(const std::vector<UChar> &naluData)
@@ -834,11 +836,27 @@ Void TDecTop::xDecodePPS(const std::vector<UChar> &naluData)
   m_parameterSetManager.storePPS( pps, naluData);
 }
 
-Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay, Bool bParseOnly, Int& iPOC
+Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
                    , TComStats*  m_apcStats
 #endif
-  )
+   )
+{
+  int iPOC, picWidthLumaSamples, picHeightLumaSamples, bitDepthLuma, bitDepthChroma;
+  ChromaFormat c;
+  return decode(nalu, iSkipFrame, iPOCLastDisplay, false
+#if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
+    , m_apcStats
+#endif
+  , iPOC, picWidthLumaSamples, picHeightLumaSamples, bitDepthLuma, bitDepthChroma, c);
+}
+
+
+Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay, Bool bParseOnly
+#if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
+                   , TComStats*  m_apcStats
+#endif
+  , Int& iPOC, int &picWidthLumaSamples, int &picHeightLumaSamples, int &bitDepthLuma, int &bitDepthChroma, ChromaFormat &chromaFormat )
 {
   // ignore all NAL units of layers > 0
   if (nalu.m_nuhLayerId > 0)
@@ -856,7 +874,18 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay, 
       xDecodeVPS(nalu.getBitstream().getFifo());
       return false;
 
-    case NAL_UNIT_SPS:
+    case NAL_UNIT_SPS:     
+      if (bParseOnly)
+      {
+        TComSPS *sps = xDecodeSPS(nalu.getBitstream().getFifo());
+        // Get the picture dimensions, the bit depth and the chroma format from the SPS
+        picWidthLumaSamples = sps->getPicWidthInLumaSamples() - sps->getConformanceWindow().getWindowLeftOffset() - sps->getConformanceWindow().getWindowRightOffset();
+        picHeightLumaSamples = sps->getPicHeightInLumaSamples() - sps->getConformanceWindow().getWindowTopOffset() - sps->getConformanceWindow().getWindowBottomOffset();
+        bitDepthLuma = sps->getBitDepth(CHANNEL_TYPE_LUMA);
+        bitDepthChroma = sps->getBitDepth(CHANNEL_TYPE_CHROMA);
+        chromaFormat = sps->getChromaFormatIdc();
+        return false;
+      }
       xDecodeSPS(nalu.getBitstream().getFifo());
       return false;
 
