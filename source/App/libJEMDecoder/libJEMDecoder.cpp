@@ -35,6 +35,14 @@ public:
     decTop.setDecodedPictureHashSEIEnabled(true);
     iPOCLastDisplay += iSkipFrame; // set the last displayed POC correctly for skip forward.
 
+#if JVET_F0096_BILATERAL_FILTER
+    TComBilateralFilter::instance()->createdivToMulLUTs();
+    for(Int qp=18; qp<MAX_QP+1; qp++ )
+    {
+      TComBilateralFilter::instance()->createBilateralFilterTable(qp);
+    }
+#endif
+
 #if VCEG_AZ07_INIT_PREVFRAME
     apcStats = new TComStats (1, NUM_CTX_PBSLICE);
 #elif VCEG_AZ07_BAC_ADAPT_WDOW
