@@ -754,12 +754,6 @@ TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
   m_filterCoeffShort = NULL;
   m_alfClipTable = NULL;
   m_alfClipOffset = 0;
-
-  coeff_chroma = NULL;
-  coeffmulti = NULL;
-  alf_cu_flag = NULL;
-  alfCoeffLuma = NULL;
-  alfCoeffChroma = NULL;
 }
 
 Void TComAdaptiveLoopFilter:: xError(const char *text, int code)

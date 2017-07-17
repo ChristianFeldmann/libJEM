@@ -56,6 +56,40 @@ TDecGop::TDecGop()
  : m_numberOfChecksumErrorsDetected(0)
 {
   m_dDecTime = 0;
+
+  // Initialize the ALF pointers to NULL.
+  // Otherwise, freeing the ALF parameters will crash (the function checks for NULL)
+#if COM16_C806_ALF_TEMPPRED_NUM
+  for( Int i = 0; i < COM16_C806_ALF_TEMPPRED_NUM; i++ )
+  {
+#if JVET_E0104_ALF_TEMP_SCALABILITY
+    for (Int j = 0; j < JVET_E0104_ALF_MAX_TEMPLAYERID; j++)
+    {
+#if !JVET_C0038_GALF  
+      m_acStoredAlfPara[j][i].coeff = NULL;
+#endif
+      m_acStoredAlfPara[j][i].coeff_chroma = NULL;
+      m_acStoredAlfPara[j][i].coeffmulti = NULL;
+      m_acStoredAlfPara[j][i].alf_cu_flag = NULL;
+#if COM16_C806_ALF_TEMPPRED_NUM
+      m_acStoredAlfPara[j][i].alfCoeffLuma = NULL;
+      m_acStoredAlfPara[j][i].alfCoeffChroma = NULL;
+#endif
+    }
+#else
+    #if !JVET_C0038_GALF  
+      m_acStoredAlfPara[i].coeff = NULL;
+#endif
+      m_acStoredAlfPara[i].coeff_chroma = NULL;
+      m_acStoredAlfPara[i].coeffmulti = NULL;
+      m_acStoredAlfPara[i].alf_cu_flag = NULL;
+#if COM16_C806_ALF_TEMPPRED_NUM
+      m_acStoredAlfPara[i].alfCoeffLuma = NULL;
+      m_acStoredAlfPara[i].alfCoeffChroma = NULL;
+#endif
+#endif
+  }
+#endif
 }
 
 TDecGop::~TDecGop()
