@@ -12286,7 +12286,6 @@ void xKLTr(Int bitDepth, TCoeff *block, TCoeff *coeff, UInt uiTrSize, Short **ei
     UInt uiLog2TrSize = g_aucConvertToBit[uiTrSize] + 2;
     Int shift = bitDepth + 2 * uiLog2TrSize + KLTBASIS_SHIFTBIT - 15;
     Int add = 1 << (shift - 1);
-    UInt uiTarDepth = g_aucConvertToBit[uiTrSize];
     Short **pTMat = eigenVector;
     for (i = 0; i< uiDim; i++)
     {
@@ -12314,7 +12313,6 @@ void xIKLTr(Int bitDepth, TCoeff *coeff, TCoeff *block, UInt uiTrSize, Short **e
     //const Int channelBitDepth = rTu.getCU()->getSlice()->getSPS()->getBitDepth(toChannelType(component));
     Int shift = 7 + KLTBASIS_SHIFTBIT - (bitDepth - 8);
     Int add = 1 << (shift - 1);
-    UInt uiTarDepth = g_aucConvertToBit[uiTrSize];
     Short **pTMat = eigenVector;
     for (i = 0; i < uiDim; i++)
     {
