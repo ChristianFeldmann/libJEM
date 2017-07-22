@@ -627,6 +627,7 @@ protected:
   Int m_pIDTmp[MAX_1DTRANS_LEN];
   EigenType ***m_pppdEigenVector;
   Short ***m_pppsEigenVector;
+  Short **m_ppsEigenVector[USE_MORE_BLOCKSIZE_DEPTH_MAX]; // This used to be defined globally (g_ppsEigenVector)
   covMatrixType **m_pCovMatrix;
   Pel ***m_pppTarPatch;
 #if VCEG_AZ08_FAST_DERIVE_KLT

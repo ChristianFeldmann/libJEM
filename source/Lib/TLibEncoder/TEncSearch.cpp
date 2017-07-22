@@ -48,10 +48,6 @@
 //! \ingroup TLibEncoder
 //! \{
 
-#if VCEG_AZ08_KLT_COMMON
-extern short **g_ppsEigenVector[USE_MORE_BLOCKSIZE_DEPTH_MAX];
-#endif
-
 #if JVET_D0033_ADAPTIVE_CLIPPING_ENC_METHOD
 namespace {
 

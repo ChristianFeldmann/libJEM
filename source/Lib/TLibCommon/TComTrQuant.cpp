@@ -133,8 +133,8 @@ typedef VectorXf vectorType; //VectorXd
 typedef MatrixXd matrixTypeDefined; //MatrixXd
 typedef VectorXd vectorType; //VectorXd
 #endif
-void xKLTr(Int bitDepth, TCoeff *block, TCoeff *coeff, UInt uiTrSize);
-void xIKLTr(Int bitDepth, TCoeff *coeff, TCoeff *block, UInt uiTrSize);
+void xKLTr(Int bitDepth, TCoeff *block, TCoeff *coeff, UInt uiTrSize, Short **eigenVector);
+void xIKLTr(Int bitDepth, TCoeff *coeff, TCoeff *block, UInt uiTrSize, Short **eigenVector);
 #endif
 
 typedef struct
@@ -6015,14 +6015,14 @@ void xTrMxN_EMT(Int bitDepth, TCoeff *block, TCoeff *coeff, Int iWidth, Int iHei
 
 Void xTrMxN(Int bitDepth, TCoeff *block, TCoeff *coeff, Int iWidth, Int iHeight, Bool useDST, const Int maxLog2TrDynamicRange
 #if VCEG_AZ08_KLT_COMMON
-    , Bool useKLT
+    , Bool useKLT, Short **eigenVector
 #endif
     )
 {
 #if VCEG_AZ08_KLT_COMMON
     if (useKLT == true)
     {
-      xKLTr(bitDepth, block, coeff, iWidth);
+      xKLTr(bitDepth, block, coeff, iWidth, eigenVector);
       return;
     }
 #endif
@@ -6281,7 +6281,7 @@ void xITrMxN_EMT(Int bitDepth, TCoeff *coeff, TCoeff *block, Int iWidth, Int iHe
 #if JVET_C0024_ITSKIP
 Void xITrMxN(Int bitDepth, TCoeff *coeff, TCoeff *block, Int iWidth, Int iHeight, UInt uiSkipWidth, UInt uiSkipHeight, Bool useDST, const Int maxLog2TrDynamicRange
 #if VCEG_AZ08_KLT_COMMON
-    , Bool useKLT
+    , Bool useKLT, Short **eigenVector
 #endif
 )
 #else
@@ -6296,7 +6296,7 @@ Void xITrMxN(Int bitDepth, TCoeff *coeff, TCoeff *block, Int iWidth, Int iHeight
     if (useKLT == true)
     {
       assert(iWidth == iHeight);
-      xIKLTr(bitDepth, coeff, block, iHeight);
+      xIKLTr(bitDepth, coeff, block, iHeight, eigenVector);
       return;
     }
 #endif
@@ -8952,7 +8952,11 @@ Void TComTrQuant::xT( const Int channelBitDepth, Bool useDST, Pel* piBlkResi, UI
 #endif
 
 #if VCEG_AZ08_KLT_COMMON
-  xTrMxN( channelBitDepth, block, coeff, iWidth, iHeight, useDST, maxLog2TrDynamicRange, useKLT);
+  {
+    UInt uiTarDepth = g_aucConvertToBit[iWidth];
+    Short **eigenVector = m_ppsEigenVector[uiTarDepth];
+    xTrMxN( channelBitDepth, block, coeff, iWidth, iHeight, useDST, maxLog2TrDynamicRange, useKLT, eigenVector);
+  }
 #else
   xTrMxN( channelBitDepth, block, coeff, iWidth, iHeight, useDST, maxLog2TrDynamicRange );
 #endif
@@ -9003,6 +9007,11 @@ Void TComTrQuant::xIT( const Int channelBitDepth, Bool useDST, TCoeff* plCoef, P
 
   memcpy(coeff, plCoef, (iWidth * iHeight * sizeof(TCoeff)));
 
+#if VCEG_AZ08_KLT_COMMON
+  UInt uiTarDepth = g_aucConvertToBit[iWidth];
+  Short **eigenVector = m_ppsEigenVector[uiTarDepth];
+#endif
+
 #if COM16_C806_EMT
 #if VCEG_AZ08_KLT_COMMON
   if(ucTrIdx!=DCT2_HEVC && useKLT == false)
@@ -9021,7 +9030,7 @@ Void TComTrQuant::xIT( const Int channelBitDepth, Bool useDST, TCoeff* plCoef, P
 #if JVET_C0024_ITSKIP
   xITrMxN( channelBitDepth, coeff, block, iWidth, iHeight, uiSkipWidth, uiSkipHeight, useDST, maxLog2TrDynamicRange
 #if VCEG_AZ08_KLT_COMMON
-  , useKLT
+  , useKLT, eigenVector
 #endif
  );
 #else
@@ -12270,7 +12279,7 @@ Void insertNode(DistType diff, Int iXOffset, Int iYOffset, DistType *pDiff, Int 
 *  \param coeff pointer to output data (transform coefficients)
 *  \param uiTrSize transform size (uiTrSize x uiTrSize)
 */
-void xKLTr(Int bitDepth, TCoeff *block, TCoeff *coeff, UInt uiTrSize)  //void xKLTr(Int bitDepth, Pel *block, Short *coeff, UInt uiTrSize)  
+void xKLTr(Int bitDepth, TCoeff *block, TCoeff *coeff, UInt uiTrSize, Short **eigenVector)  //void xKLTr(Int bitDepth, Pel *block, Short *coeff, UInt uiTrSize)  
 {
     Int i, k, iSum;
     Int uiDim = uiTrSize*uiTrSize;
@@ -12278,7 +12287,7 @@ void xKLTr(Int bitDepth, TCoeff *block, TCoeff *coeff, UInt uiTrSize)  //void xK
     Int shift = bitDepth + 2 * uiLog2TrSize + KLTBASIS_SHIFTBIT - 15;
     Int add = 1 << (shift - 1);
     UInt uiTarDepth = g_aucConvertToBit[uiTrSize];
-    Short **pTMat = g_ppsEigenVector[uiTarDepth];
+    Short **pTMat = eigenVector;
     for (i = 0; i< uiDim; i++)
     {
         iSum = 0;
@@ -12296,7 +12305,7 @@ void xKLTr(Int bitDepth, TCoeff *block, TCoeff *coeff, UInt uiTrSize)  //void xK
 *  \param block pointer to output data (residual)
 *  \param uiTrSize transform size (uiTrSize x uiTrSize)
 */
-void xIKLTr(Int bitDepth, TCoeff *coeff, TCoeff *block, UInt uiTrSize)  //void xIKLTr(Short *coeff, Pel *block, UInt uiTrSize) 
+void xIKLTr(Int bitDepth, TCoeff *coeff, TCoeff *block, UInt uiTrSize, Short **eigenVector)  //void xIKLTr(Short *coeff, Pel *block, UInt uiTrSize) 
 {
     Int i, k, iSum;
     UInt uiDim = uiTrSize*uiTrSize;
@@ -12306,7 +12315,7 @@ void xIKLTr(Int bitDepth, TCoeff *coeff, TCoeff *block, UInt uiTrSize)  //void x
     Int shift = 7 + KLTBASIS_SHIFTBIT - (bitDepth - 8);
     Int add = 1 << (shift - 1);
     UInt uiTarDepth = g_aucConvertToBit[uiTrSize];
-    Short **pTMat = g_ppsEigenVector[uiTarDepth];
+    Short **pTMat = eigenVector;
     for (i = 0; i < uiDim; i++)
     {
         iSum = 0;
@@ -12395,7 +12404,7 @@ Bool TComTrQuant::derive1DimKLT(UInt uiBlkSize, UInt uiUseCandiNumber)
     calcCovMatrix(m_pData, uiUseCandiNumber, covMatrix, uiDim);
     EigenType **pdEigenVector = m_pppdEigenVector[uiTarDepth];
     Short **psEigenVector = m_pppsEigenVector[uiTarDepth];
-    g_ppsEigenVector[uiTarDepth] = psEigenVector;
+    m_ppsEigenVector[uiTarDepth] = psEigenVector;
 
     matrixTypeDefined Cov(uiDim, uiDim);
     UInt i = 0;
@@ -12449,7 +12458,7 @@ Bool TComTrQuant::derive1DimKLT_Fast(UInt uiBlkSize, UInt uiUseCandiNumber)
     EigenType **pdEigenVector = m_pppdTmpEigenVector;
     EigenType **pdEigenVectorTarget = m_pppdEigenVector[uiTarDepth];
     Short **psEigenVector = m_pppsEigenVector[uiTarDepth];
-    g_ppsEigenVector[uiTarDepth] = psEigenVector;
+    m_ppsEigenVector[uiTarDepth] = psEigenVector;
 
     //depend on eigen libarary 
     matrixTypeDefined Cov(uiSampleNum, uiSampleNum);

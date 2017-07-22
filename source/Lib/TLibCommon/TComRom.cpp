@@ -62,7 +62,6 @@ Bool g_bInitAMaxBT = false;
 #endif
 
 #if VCEG_AZ08_KLT_COMMON
-short **g_ppsEigenVector[USE_MORE_BLOCKSIZE_DEPTH_MAX];
 #define MAX_KLTAREA (1<<(((USE_MORE_BLOCKSIZE_DEPTH_MAX)<<1) + 2))
 #if VCEG_AZ08_INTER_KLT
 Bool g_bEnableCheck = true;

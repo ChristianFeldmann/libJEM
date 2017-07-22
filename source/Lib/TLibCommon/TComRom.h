@@ -42,9 +42,7 @@
 
 #include<stdio.h>
 #include<iostream>
-#if VCEG_AZ08_KLT_COMMON
-extern short **g_ppsEigenVector[USE_MORE_BLOCKSIZE_DEPTH_MAX];
-#endif
+
 //! \ingroup TLibCommon
 //! \{
 
