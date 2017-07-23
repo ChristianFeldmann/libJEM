@@ -54,7 +54,7 @@
 // Create / destroy
 // --------------------------------------------------------------------------------------------------------------------
 
-Void TComCUMvField::create( UInt uiNumPartition )
+Void TComCUMvField::create( UInt uiNumPartition, TComRomScan *scan )
 {
   assert(m_pcMv     == NULL);
   assert(m_pcMvd    == NULL);
@@ -65,6 +65,7 @@ Void TComCUMvField::create( UInt uiNumPartition )
   m_piRefIdx = new Char  [ uiNumPartition ];
 
   m_uiNumPartition = uiNumPartition;
+  romScan = scan;
 }
 
 Void TComCUMvField::destroy()
@@ -104,7 +105,7 @@ Void TComCUMvField::clearCtuMvField()
 Void TComCUMvField::clearMvField()
 {
 #if JVET_C0024_QTBT
-  UInt uiRaster = g_auiZscanToRaster[m_pcCU->getZorderIdxInCtu()];
+  UInt uiRaster = romScan->auiZscanToRaster[m_pcCU->getZorderIdxInCtu()];
   UInt uiShort, uiLong;
   UInt uiStride;
   if (m_pcCU->getHeight(0) > m_pcCU->getWidth(0))
@@ -126,9 +127,9 @@ Void TComCUMvField::clearMvField()
 
   for (UInt i=0; i<uiLong; i+=uiShort)
   {
-    memset(m_piRefIdx + g_auiRasterToZscan[uiRaster] - m_pcCU->getZorderIdxInCtu(), NOT_VALID, uiCurrPartNumb );
-    TComMv* pMv = m_pcMv + g_auiRasterToZscan[uiRaster] - m_pcCU->getZorderIdxInCtu();
-    TComMv* pMvd = m_pcMvd + g_auiRasterToZscan[uiRaster] - m_pcCU->getZorderIdxInCtu();
+    memset(m_piRefIdx + romScan->auiRasterToZscan[uiRaster] - m_pcCU->getZorderIdxInCtu(), NOT_VALID, uiCurrPartNumb );
+    TComMv* pMv = m_pcMv + romScan->auiRasterToZscan[uiRaster] - m_pcCU->getZorderIdxInCtu();
+    TComMv* pMvd = m_pcMvd + romScan->auiRasterToZscan[uiRaster] - m_pcCU->getZorderIdxInCtu();
 
     for (UInt j=0; j<uiCurrPartNumb; j++)
     {
@@ -193,7 +194,7 @@ Void TComCUMvField::setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr
 {
 #if JVET_C0024_QTBT
   assert(eCUMode == SIZE_2Nx2N); 
-  UInt uiRaster = g_auiZscanToRaster[m_pcCU->getZorderIdxInCtu()+iPartAddr];
+  UInt uiRaster = romScan->auiZscanToRaster[m_pcCU->getZorderIdxInCtu()+iPartAddr];
   UInt uiShort, uiLong;
   UInt uiStride;
   UInt uiWidth = m_pcCU->getWidth(iPartAddr);
@@ -217,7 +218,7 @@ Void TComCUMvField::setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr
 
   for (UInt i=0; i<uiLong; i+=uiShort)
   {
-    T* p1 = p + g_auiRasterToZscan[uiRaster] - m_pcCU->getZorderIdxInCtu();
+    T* p1 = p + romScan->auiRasterToZscan[uiRaster] - m_pcCU->getZorderIdxInCtu();
     for (UInt j=0; j<uiCurrPartNumb; j++)
     {
       p1[ j ] = val;
@@ -454,8 +455,8 @@ Void TComCUMvField::setMvFieldSP( TComDataCU* pcCU, UInt uiAbsPartIdx, TComMvFie
   uiAbsPartIdx += pcCU->getZorderIdxInCtu();
 
   Int iMinCUW  = pcCU->getPic()->getMinCUHeight();
-  Int iStartPelX = g_auiRasterToPelX[g_auiZscanToRaster[uiAbsPartIdx]]/iMinCUW;
-  Int iStartPelY = g_auiRasterToPelY[g_auiZscanToRaster[uiAbsPartIdx]]/iMinCUW;
+  Int iStartPelX = romScan->auiRasterToPelX[romScan->auiZscanToRaster[uiAbsPartIdx]]/iMinCUW;
+  Int iStartPelY = romScan->auiRasterToPelY[romScan->auiZscanToRaster[uiAbsPartIdx]]/iMinCUW;
   Int iEndPelX = iStartPelX + iWidth/iMinCUW;
   Int iEndPelY = iStartPelY + iHeight/iMinCUW;
 
@@ -467,7 +468,7 @@ Void TComCUMvField::setMvFieldSP( TComDataCU* pcCU, UInt uiAbsPartIdx, TComMvFie
     for (Int j=iStartPelX; j < iEndPelX; j ++)
     {
       iCurrRaster = i * iNumPart + j;
-      uiPartAddr  = g_auiRasterToZscan[iCurrRaster];
+      uiPartAddr  = romScan->auiRasterToZscan[iCurrRaster];
       uiPartAddr -= pcCU->getZorderIdxInCtu();  
 
       m_pcMv[uiPartAddr]     = cMvField.getMv();

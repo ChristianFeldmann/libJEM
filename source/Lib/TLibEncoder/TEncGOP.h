@@ -166,6 +166,8 @@ private:
 #endif
 #endif
 
+  TComRomScan *romScan;
+
 public:
   TEncGOP();
   virtual ~TEncGOP();
@@ -223,6 +225,8 @@ public:
   TEncAnalyze& getAnalyzePData()   { return m_gcAnalyzeP; }
   TEncAnalyze& getAnalyzeBData()   { return m_gcAnalyzeB; }
 #endif
+
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
 
 protected:
   TEncRateCtrl* getRateCtrl()       { return m_pcRateCtrl;  }

@@ -70,11 +70,12 @@ TComPicSym::TComPicSym()
 {}
 
 
-Void TComPicSym::create  ( const TComSPS &sps, const TComPPS &pps, UInt uiMaxDepth )
+Void TComPicSym::create  ( const TComSPS &sps, const TComPPS &pps, UInt uiMaxDepth, TComRomScan *scan )
 {
   UInt i;
   m_sps = sps;
   m_pps = pps;
+  romScan = scan;
 
   const ChromaFormat chromaFormatIDC = sps.getChromaFormatIdc();
   const Int iPicWidth      = sps.getPicWidthInLumaSamples();
@@ -115,7 +116,7 @@ Void TComPicSym::create  ( const TComSPS &sps, const TComPPS &pps, UInt uiMaxDep
   for ( i=0; i<m_numCtusInFrame ; i++ )
   {
     m_pictureCtuArray[i] = new TComDataCU;
-    m_pictureCtuArray[i]->create( chromaFormatIDC, m_numPartitionsInCtu, uiMaxCuWidth, uiMaxCuHeight, false, uiMaxCuWidth >> m_uhTotalDepth
+    m_pictureCtuArray[i]->create( chromaFormatIDC, m_numPartitionsInCtu, uiMaxCuWidth, uiMaxCuHeight, false, uiMaxCuWidth >> m_uhTotalDepth, romScan
 #if JVET_C0024_QTBT
       , uiMaxCuWidth, uiMaxCuHeight
 #endif
@@ -538,8 +539,8 @@ Void TComPicSym::initFRUCMVP()
         TComDataCU * pColPicCU = pColPic->getCtu( uiColPicCUAddr );
         for( UInt uiAbsPartIdxColPicCU = 0 ; uiAbsPartIdxColPicCU < pColPic->getNumPartitionsInCtu() ; uiAbsPartIdxColPicCU++ )
         {
-          Int xColPic = pColPicCU->getCUPelX() + g_auiRasterToPelX[g_auiZscanToRaster[uiAbsPartIdxColPicCU]];
-          Int yColPic = pColPicCU->getCUPelY() + g_auiRasterToPelY[g_auiZscanToRaster[uiAbsPartIdxColPicCU]];
+          Int xColPic = pColPicCU->getCUPelX() + romScan->auiRasterToPelX[romScan->auiZscanToRaster[uiAbsPartIdxColPicCU]];
+          Int yColPic = pColPicCU->getCUPelY() + romScan->auiRasterToPelY[romScan->auiZscanToRaster[uiAbsPartIdxColPicCU]];
           TComCUMvField * pColPicCUMVField = pColPicCU->getCUMvField( eRefPicList );
           if( pColPicCUMVField->getRefIdx( uiAbsPartIdxColPicCU ) >= 0 )
           {
@@ -560,7 +561,7 @@ Void TComPicSym::initFRUCMVP()
             {
               UInt uiCurPicCUAddr = ( yCurPic >> nCUSizeLog2 ) * getFrameWidthInCtus() + ( xCurPic >> nCUSizeLog2 );
               assert( MIN_PU_SIZE == 4 );
-              UInt uiAbsPartIdxCurPicCU = g_auiRasterToZscan[( ( yCurPic & nBlkPosMask ) >> 2 ) * nWidthInNumSPU + ( ( xCurPic & nBlkPosMask ) >> 2 )];
+              UInt uiAbsPartIdxCurPicCU = romScan->auiRasterToZscan[( ( yCurPic & nBlkPosMask ) >> 2 ) * nWidthInNumSPU + ( ( xCurPic & nBlkPosMask ) >> 2 )];
               TComCUMvField * pCurPicFRUCCUMVField = getCtu( uiCurPicCUAddr )->getFRUCUniLateralMVField( eRefPicList );
               if( pCurPicFRUCCUMVField->getRefIdx( uiAbsPartIdxCurPicCU ) < 0 )
               {

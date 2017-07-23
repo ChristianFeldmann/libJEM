@@ -607,13 +607,13 @@ Void TAppEncTop::encode()
 #if JVET_C0024_QTBT
   if( m_isField )
   {
-    pcPicYuvOrg->create  ( m_iSourceWidth, m_iSourceHeightOrg, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true );
-    cPicYuvTrueOrg.create(m_iSourceWidth, m_iSourceHeightOrg, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true);
+    pcPicYuvOrg->create  ( m_iSourceWidth, m_iSourceHeightOrg, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true, &m_cTEncTop.romScan );
+    cPicYuvTrueOrg.create(m_iSourceWidth, m_iSourceHeightOrg, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true, &m_cTEncTop.romScan);
   }
   else
   {
-    pcPicYuvOrg->create  ( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true );
-    cPicYuvTrueOrg.create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true );
+    pcPicYuvOrg->create  ( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true, &m_cTEncTop.romScan );
+    cPicYuvTrueOrg.create(m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true, &m_cTEncTop.romScan );
   }
 #else
   if( m_isField )
@@ -760,7 +760,7 @@ Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec)
     rpcPicYuvRec = new TComPicYuv;
 
 #if JVET_C0024_QTBT
-    rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true );
+    rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiCTUSize, m_uiCTUSize, m_uiMaxTotalCUDepth, true, &m_cTEncTop.romScan );
 #else
     rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxTotalCUDepth, true );
 #endif

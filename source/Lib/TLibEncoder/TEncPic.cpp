@@ -121,9 +121,9 @@ TEncPic::~TEncPic()
  * \param uiMaxAdaptiveQPDepth Maximum depth of unit block for assigning QP adaptive to local image characteristics
  * \param bIsVirtual
  */
-Void TEncPic::create( const TComSPS &sps, const TComPPS &pps, UInt uiMaxAdaptiveQPDepth, Bool bIsVirtual )
+Void TEncPic::create( const TComSPS &sps, const TComPPS &pps, UInt uiMaxAdaptiveQPDepth, Bool bIsVirtual, TComRomScan *scan )
 {
-  TComPic::create( sps, pps, bIsVirtual );
+  TComPic::create( sps, pps, bIsVirtual, scan );
   const Int  iWidth      = sps.getPicWidthInLumaSamples();
   const Int  iHeight     = sps.getPicHeightInLumaSamples();
 #if JVET_C0024_QTBT

@@ -88,6 +88,17 @@ TDecTop::TDecTop()
   g_bJustDoIt = g_bEncDecTraceDisable;
   g_nSymbolCounter = 0;
 #endif
+
+  romScan.initROM();
+  m_cPrediction.setTComRomScan(&romScan);
+  m_cLoopFilter.setTComRomScan(&romScan);
+  m_cSAO.setTComRomScan(&romScan);
+  m_cCuDecoder.setTComRomScan(&romScan);
+  m_cCavlcDecoder.setTComRomScan(&romScan);
+  m_cTrQuant.setTComRomScan(&romScan);
+#if ALF_HM3_REFACTOR
+  m_cAdaptiveLoopFilter.setTComRomScan(&romScan);
+#endif
 }
 
 TDecTop::~TDecTop()
@@ -103,6 +114,7 @@ TDecTop::~TDecTop()
     delete m_prefixSEINALUs.front();
     m_prefixSEINALUs.pop_front();
   }
+  romScan.destroyROM();
 }
 
 Void TDecTop::create()
@@ -125,7 +137,6 @@ Void TDecTop::destroy()
 Void TDecTop::init()
 {
   // initialize ROM
-  initROM();
   m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, 
 #if ALF_HM3_REFACTOR
     &m_cAdaptiveLoopFilter, 
@@ -157,9 +168,6 @@ Void TDecTop::deletePicBuffer ( )
   m_cSAO.destroy();
 
   m_cLoopFilter.        destroy();
-
-  // destroy ROM
-  destroyROM();
 }
 
 Void TDecTop::xGetNewPicBuffer ( const TComSPS &sps, const TComPPS &pps, TComPic*& rpcPic, const UInt temporalLayer )
@@ -169,7 +177,7 @@ Void TDecTop::xGetNewPicBuffer ( const TComSPS &sps, const TComPPS &pps, TComPic
   {
     rpcPic = new TComPic();
 
-    rpcPic->create ( sps, pps, true);
+    rpcPic->create ( sps, pps, true, &romScan );
 
     m_cListPic.pushBack( rpcPic );
 
@@ -206,7 +214,7 @@ Void TDecTop::xGetNewPicBuffer ( const TComSPS &sps, const TComPPS &pps, TComPic
     m_cListPic.pushBack( rpcPic );
   }
   rpcPic->destroy();
-  rpcPic->create ( sps, pps, true);
+  rpcPic->create ( sps, pps, true, &romScan );
 }
 
 Void TDecTop::executeLoopFilters(Int& poc, TComList<TComPic*>*& rpcListPic)

@@ -98,6 +98,8 @@ private:
 
   SEIMessages  m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
 
+  TComRomScan *romScan;
+
 public:
   TComPic();
   virtual ~TComPic();
@@ -127,7 +129,7 @@ public:
   Bool          IsSetIntMv(UInt uiZorder, UInt uiWidth, UInt uiHeight, RefPicList eRefList, UInt uiRefIdx);
 #endif
 
-  Void          create( const TComSPS &sps, const TComPPS &pps, const Bool bIsVirtual /*= false*/ );
+  Void          create( const TComSPS &sps, const TComPPS &pps, const Bool bIsVirtual /*= false*/, TComRomScan *scan );
 
   virtual Void  destroy();
 

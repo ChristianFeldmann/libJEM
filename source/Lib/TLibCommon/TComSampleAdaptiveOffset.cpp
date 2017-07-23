@@ -152,7 +152,7 @@ Void TComSampleAdaptiveOffset::create( Int picWidth, Int picHeight, ChromaFormat
   {
     m_tempPicYuv = new TComPicYuv;
 #if JVET_C0024_QTBT
-    m_tempPicYuv->create( m_picWidth, m_picHeight, m_chromaFormatIDC, m_CTUSize, m_CTUSize, maxCUDepth, true );
+    m_tempPicYuv->create( m_picWidth, m_picHeight, m_chromaFormatIDC, m_CTUSize, m_CTUSize, maxCUDepth, true, romScan );
 #else
     m_tempPicYuv->create( m_picWidth, m_picHeight, m_chromaFormatIDC, m_maxCUWidth, m_maxCUHeight, maxCUDepth, true );
 #endif
@@ -750,8 +750,8 @@ Void TComSampleAdaptiveOffset::xPCMCURestoration ( TComDataCU* pcCU, UInt uiAbsZ
   {
     for ( UInt uiPartIdx = 0; uiPartIdx < 4; uiPartIdx++, uiAbsZorderIdx+=uiQNumParts )
     {
-      UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsZorderIdx] ];
-      UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsZorderIdx] ];
+      UInt uiLPelX   = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsZorderIdx] ];
+      UInt uiTPelY   = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsZorderIdx] ];
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getPicWidthInLumaSamples() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getPicHeightInLumaSamples() ) )
       {
         xPCMCURestoration( pcCU, uiAbsZorderIdx, uiDepth+1 );

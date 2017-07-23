@@ -159,12 +159,12 @@ Void TDecCu::create( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight, ChromaF
       UInt uiWidth = 1<<(wIdx+MIN_CU_LOG2);
       UInt uiHeight = 1<<(hIdx+MIN_CU_LOG2);
 
-      m_pppcCU[wIdx][hIdx]      = new TComDataCU; m_pppcCU[wIdx][hIdx]->create( chromaFormatIDC, 1<<( ( m_uiMaxDepth - 1 )<<1 ), uiMaxWidth, uiMaxHeight, true, uiMaxWidth >> (m_uiMaxDepth - 1), uiWidth, uiHeight );
-      m_pppcYuvResi[wIdx][hIdx] = new TComYuv;    m_pppcYuvResi[wIdx][hIdx]->create( uiWidth, uiHeight, chromaFormatIDC );
-      m_pppcYuvReco[wIdx][hIdx] = new TComYuv;    m_pppcYuvReco[wIdx][hIdx]->create( uiWidth, uiHeight, chromaFormatIDC );
+      m_pppcCU[wIdx][hIdx]      = new TComDataCU; m_pppcCU[wIdx][hIdx]->create( chromaFormatIDC, 1<<( ( m_uiMaxDepth - 1 )<<1 ), uiMaxWidth, uiMaxHeight, true, uiMaxWidth >> (m_uiMaxDepth - 1), romScan, uiWidth, uiHeight );
+      m_pppcYuvResi[wIdx][hIdx] = new TComYuv;    m_pppcYuvResi[wIdx][hIdx]->create( uiWidth, uiHeight, chromaFormatIDC , romScan);
+      m_pppcYuvReco[wIdx][hIdx] = new TComYuv;    m_pppcYuvReco[wIdx][hIdx]->create( uiWidth, uiHeight, chromaFormatIDC , romScan);
 #if COM16_C806_OBMC
-      m_pppcTmpYuv1[wIdx][hIdx] = new TComYuv;    m_pppcTmpYuv1[wIdx][hIdx]->create( uiWidth, uiHeight, chromaFormatIDC );
-      m_pppcTmpYuv2[wIdx][hIdx] = new TComYuv;    m_pppcTmpYuv2[wIdx][hIdx]->create( uiWidth, uiHeight, chromaFormatIDC );
+      m_pppcTmpYuv1[wIdx][hIdx] = new TComYuv;    m_pppcTmpYuv1[wIdx][hIdx]->create( uiWidth, uiHeight, chromaFormatIDC , romScan);
+      m_pppcTmpYuv2[wIdx][hIdx] = new TComYuv;    m_pppcTmpYuv2[wIdx][hIdx]->create( uiWidth, uiHeight, chromaFormatIDC , romScan);
 #endif
     }
   }
@@ -205,12 +205,12 @@ Void TDecCu::create( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight, ChromaF
   m_IsChromaQpAdjCoded = false;
 
   // initialize partition order.
-  UInt* piTmp = &g_auiZscanToRaster[0];
-  initZscanToRaster(m_uiMaxDepth, 1, 0, piTmp);
-  initRasterToZscan( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
+  UInt* piTmp = &romScan->auiZscanToRaster[0];
+  romScan->initZscanToRaster(m_uiMaxDepth, 1, 0, piTmp);
+  romScan->initRasterToZscan( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
 
   // initialize conversion matrix from partition index to pel
-  initRasterToPelXY( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
+  romScan->initRasterToPelXY( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
 }
 
 Void TDecCu::destroy()
@@ -410,13 +410,13 @@ Void TDecCu::xDecodeCU( TComDataCU*const pcCU, const UInt uiAbsPartIdx, const UI
 
 
   Bool bBoundary = false;
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  UInt uiLPelX   = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
 #if JVET_C0024_QTBT
   UInt uiRPelX   = uiLPelX + uiWidth  - 1;
 #else
   UInt uiRPelX   = uiLPelX + (maxCuWidth>>uiDepth)  - 1;
 #endif
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  UInt uiTPelY   = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
 #if JVET_C0024_QTBT
   UInt uiBPelY   = uiTPelY + uiHeight - 1;
 #else
@@ -504,8 +504,8 @@ Void TDecCu::xDecodeCU( TComDataCU*const pcCU, const UInt uiAbsPartIdx, const UI
 
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++ )
     {
-      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiIdx] ];
+      uiLPelX   = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiIdx] ];
+      uiTPelY   = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiIdx] ];
 
       if ( !isLastCtuOfSliceSegment && ( uiLPelX < sps.getPicWidthInLumaSamples() ) && ( uiTPelY < sps.getPicHeightInLumaSamples() ) )
       {
@@ -596,7 +596,7 @@ Void TDecCu::xDecodeCU( TComDataCU*const pcCU, const UInt uiAbsPartIdx, const UI
       {
         if (uiPartUnitIdx==1)
         {
-          uiIdxBT = g_auiRasterToZscan[g_auiZscanToRaster[uiIdxBT] 
+          uiIdxBT = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiIdxBT] 
           + (uiHeight>>1)/pcCU->getPic()->getMinCUHeight()*pcCU->getPic()->getNumPartInCtuWidth()];
         }
 #if JVET_C0024_BT_RMV_REDUNDANT
@@ -641,7 +641,7 @@ Void TDecCu::xDecodeCU( TComDataCU*const pcCU, const UInt uiAbsPartIdx, const UI
       {
         if (uiPartUnitIdx==1)
         {
-          uiIdxBT = g_auiRasterToZscan[g_auiZscanToRaster[uiIdxBT] 
+          uiIdxBT = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiIdxBT] 
           + (uiWidth>>1)/pcCU->getPic()->getMinCUWidth()];
         }
 #if JVET_C0024_BT_RMV_REDUNDANT
@@ -672,8 +672,8 @@ Void TDecCu::xDecodeCU( TComDataCU*const pcCU, const UInt uiAbsPartIdx, const UI
   }
 
   pcCU->setSizeSubParts( uiWidth, uiHeight, uiAbsPartIdx, uiDepth );
-  UInt uiBlkX = g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ] >> MIN_CU_LOG2;
-  UInt uiBlkY = g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ] >> MIN_CU_LOG2;
+  UInt uiBlkX = romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ] >> MIN_CU_LOG2;
+  UInt uiBlkY = romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ] >> MIN_CU_LOG2;
   pcCU->getPic()->setCodedBlkInCTU(true, uiBlkX, uiBlkY, uiWidth>> MIN_CU_LOG2, uiHeight>> MIN_CU_LOG2);
 
   pcCU->getPic()->addCodedAreaInCTU(uiWidth*uiHeight);
@@ -1005,13 +1005,13 @@ Void TDecCu::xDecompressCU( TComDataCU* pCtu, UInt uiAbsPartIdx,  UInt uiDepth )
   if (uiCTUSize>>uiDepth == uiWidth && uiWidth==uiHeight)
   {
 #endif
-  UInt uiLPelX   = pCtu->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  UInt uiLPelX   = pCtu->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
 #if JVET_C0024_QTBT
   UInt uiRPelX   = uiLPelX + (sps.getCTUSize()>>uiDepth)  - 1;
 #else
   UInt uiRPelX   = uiLPelX + (sps.getMaxCUWidth()>>uiDepth)  - 1;
 #endif
-  UInt uiTPelY   = pCtu->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  UInt uiTPelY   = pCtu->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
 #if JVET_C0024_QTBT
   UInt uiBPelY   = uiTPelY + (sps.getCTUSize()>>uiDepth) - 1;
 #else
@@ -1038,8 +1038,8 @@ Void TDecCu::xDecompressCU( TComDataCU* pCtu, UInt uiAbsPartIdx,  UInt uiDepth )
     UInt uiIdx = uiAbsPartIdx;
     for ( UInt uiPartIdx = 0; uiPartIdx < 4; uiPartIdx++ )
     {
-      uiLPelX = pCtu->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiIdx] ];
-      uiTPelY = pCtu->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiIdx] ];
+      uiLPelX = pCtu->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiIdx] ];
+      uiTPelY = pCtu->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiIdx] ];
 
       if( ( uiLPelX < sps.getPicWidthInLumaSamples() ) && ( uiTPelY < sps.getPicHeightInLumaSamples() ) )
       {
@@ -1071,7 +1071,7 @@ Void TDecCu::xDecompressCU( TComDataCU* pCtu, UInt uiAbsPartIdx,  UInt uiDepth )
     {
       if (uiPartUnitIdx==1)
       {
-        uiAbsPartIdx = g_auiRasterToZscan[g_auiZscanToRaster[uiAbsPartIdx] 
+        uiAbsPartIdx = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiAbsPartIdx] 
         + (uiHeight>>1)/pCtu->getPic()->getMinCUHeight()*pCtu->getPic()->getNumPartInCtuWidth()];
       }
       xDecompressCU( pCtu, uiAbsPartIdx, uiDepth, uiWidth, uiHeight>>1 );
@@ -1084,7 +1084,7 @@ Void TDecCu::xDecompressCU( TComDataCU* pCtu, UInt uiAbsPartIdx,  UInt uiDepth )
     {
       if (uiPartUnitIdx==1)
       {
-        uiAbsPartIdx = g_auiRasterToZscan[g_auiZscanToRaster[uiAbsPartIdx] 
+        uiAbsPartIdx = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiAbsPartIdx] 
         + (uiWidth>>1)/pCtu->getPic()->getMinCUWidth()];
       }
       xDecompressCU( pCtu, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight );
@@ -1154,8 +1154,8 @@ Void TDecCu::xDecompressCU( TComDataCU* pCtu, UInt uiAbsPartIdx,  UInt uiDepth )
     xFillPCMBuffer(m_pppcCU[uiWidthIdx][uiHeightIdx], uiDepth);
   }
 
-  UInt uiBlkX = g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ] >> MIN_CU_LOG2;
-  UInt uiBlkY = g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ] >> MIN_CU_LOG2;
+  UInt uiBlkX = romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ] >> MIN_CU_LOG2;
+  UInt uiBlkY = romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ] >> MIN_CU_LOG2;
   pCtu->getPic()->setCodedBlkInCTU(true, uiBlkX, uiBlkY, uiWidth>> MIN_CU_LOG2, uiHeight>> MIN_CU_LOG2);
   pCtu->getPic()->addCodedAreaInCTU(uiWidth*uiHeight);
 

@@ -245,6 +245,8 @@ protected:
   UChar*          m_puhQTTempEmtCuFlag;
 #endif
 
+  TComRomScan *romScan;
+
 public:
 #if JVET_D0123_ME_CTX_LUT_BITS
   estPuMeBitsSbacStruct* m_pcPuMeEstBitsSbac;
@@ -270,6 +272,8 @@ public:
             TEncSbac*     pcRDGoOnSbacCoder );
 
   Void destroy();
+
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
 
 #if JVET_D0077_SAVE_LOAD_ENC_INFO
   UChar getSaveLoadTag( UInt uiPartIdx, UInt uiWIdx, UInt uiHIdx ) {  return uiPartIdx == m_SaveLoadPartIdx[uiWIdx][uiHIdx] ? m_SaveLoadTag[uiWIdx][uiHIdx] : SAVE_LOAD_INIT; };

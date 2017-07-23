@@ -337,6 +337,9 @@ protected:
 #if VCEG_AZ06_IC
   Void xGetLLSICPrediction( TComDataCU* pcCU, TComMv *pMv, TComPicYuv *pRefPic, Int &a, Int &b, const ComponentID eComp, Int nBitDepth );
 #endif
+
+  TComRomScan *romScan;
+
 public:
   TComPrediction();
   virtual ~TComPrediction();
@@ -450,6 +453,8 @@ public:
 #if VCEG_AZ08_INTER_KLT
   Void interpolatePic(TComPic* pcPic);
 #endif
+
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
 };
 
 //! \}

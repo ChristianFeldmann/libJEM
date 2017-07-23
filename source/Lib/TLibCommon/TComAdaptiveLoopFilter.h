@@ -325,6 +325,8 @@ protected:
   Void xFrameChroma ( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor );
 #endif
 
+  TComRomScan *romScan;
+
 public:
   TComAdaptiveLoopFilter();
   virtual ~TComAdaptiveLoopFilter() {}
@@ -365,6 +367,8 @@ public:
   static Int ALFTapHToTapV(Int tapH);
   static Int ALFTapHToNumCoeff(Int tapH);
   static Int ALFFlHToFlV(Int flH);
+
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
 };
 #endif
 #endif

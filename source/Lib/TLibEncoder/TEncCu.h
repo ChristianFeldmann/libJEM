@@ -171,6 +171,8 @@ private:
 #endif
 #endif
 
+  TComRomScan *romScan;
+
 public:
   /// copy parameters from encoder class
   Void  init                ( TEncTop* pcEncTop );
@@ -197,6 +199,8 @@ public:
   Int   updateCtuDataISlice ( TComDataCU* pCtu, Int width, Int height );
 
   Void setFastDeltaQp       ( Bool b)                 { m_bFastDeltaQP = b;         }
+
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
 
 protected:
   Void  finishCU            ( TComDataCU*  pcCU, UInt uiAbsPartIdx );

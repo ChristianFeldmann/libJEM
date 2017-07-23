@@ -192,12 +192,15 @@ public:
   Void  parseAffineMvd      ( TComDataCU* pcCU, UInt uiAbsPartAddr, UInt uiPartIdx, UInt uiDepth, RefPicList eRefList );
 #endif
 
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
+
 protected:
   Bool  xMoreRbspData();
 #if VCEG_AZ07_BAC_ADAPT_WDOW || VCEG_AZ07_INIT_PREVFRAME
   TComStats* m_pcStats;
 #endif
 
+  TComRomScan *romScan;
 };
 
 //! \}

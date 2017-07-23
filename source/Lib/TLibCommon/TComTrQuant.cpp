@@ -7779,26 +7779,26 @@ Void TComTrQuant::transformNxN(       TComTU        & rTu,
 #if VCEG_AZ07_CTX_RESIDUALCODING
 #if JVET_D0120_NSST_IMPROV
 #if JVET_C0024_QTBT
-        const UInt *scan = (log2BlockWidth>=3 && log2BlockHeight>=3) ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-3] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+        const UInt *scan = (log2BlockWidth>=3 && log2BlockHeight>=3) ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-3] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #else
-        const UInt *scan = uiLog2BlockSize>3 ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-4] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+        const UInt *scan = uiLog2BlockSize>3 ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-4] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #endif
 #else
 #if JVET_C0024_QTBT
-        const UInt *scan = (log2BlockWidth==3 && log2BlockHeight==3) ? g_auiCoefScanFirstCG8x8[uiScanIdx] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+        const UInt *scan = (log2BlockWidth==3 && log2BlockHeight==3) ? g_auiCoefScanFirstCG8x8[uiScanIdx] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #else
-        const UInt *scan = uiLog2BlockSize==3 ? g_auiCoefScanFirstCG8x8[uiScanIdx] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+        const UInt *scan = uiLog2BlockSize==3 ? g_auiCoefScanFirstCG8x8[uiScanIdx] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #endif
 #endif
 #else
 #if JVET_D0120_NSST_IMPROV
 #if JVET_C0024_QTBT
-        const UInt *scan = (log2BlockWidth>=3 && log2BlockHeight>=3) ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-3] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+        const UInt *scan = (log2BlockWidth>=3 && log2BlockHeight>=3) ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-3] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #else
-        const UInt *scan = uiLog2BlockSize>3 ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-4] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+        const UInt *scan = uiLog2BlockSize>3 ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-4] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #endif
 #else
-        const UInt *scan = g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+        const UInt *scan = romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #endif
 #endif
         UInt uiIntraMode = pcCU->getIntraDir( toChannelType(compID), uiAbsPartIdx);
@@ -8189,26 +8189,26 @@ Void TComTrQuant::invTransformNxN(      TComTU        &rTu,
 #if VCEG_AZ07_CTX_RESIDUALCODING
 #if JVET_D0120_NSST_IMPROV
 #if JVET_C0024_QTBT
-      const UInt *scan = (log2BlockWidth>=3 && log2BlockHeight>=3) ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-3] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+      const UInt *scan = (log2BlockWidth>=3 && log2BlockHeight>=3) ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-3] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #else
-      const UInt *scan = uiLog2BlockSize>3 ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-4] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+      const UInt *scan = uiLog2BlockSize>3 ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-4] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #endif
 #else
 #if JVET_C0024_QTBT
-      const UInt *scan = (log2BlockWidth==3 && log2BlockHeight==3)? g_auiCoefScanFirstCG8x8[uiScanIdx] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+      const UInt *scan = (log2BlockWidth==3 && log2BlockHeight==3)? g_auiCoefScanFirstCG8x8[uiScanIdx] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #else
-      const UInt *scan = uiLog2BlockSize==3 ? g_auiCoefScanFirstCG8x8[uiScanIdx] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+      const UInt *scan = uiLog2BlockSize==3 ? g_auiCoefScanFirstCG8x8[uiScanIdx] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #endif
 #endif
 #else
 #if JVET_D0120_NSST_IMPROV
 #if JVET_C0024_QTBT
-      const UInt *scan = (log2BlockWidth>=3 && log2BlockHeight>=3) ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-3] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+      const UInt *scan = (log2BlockWidth>=3 && log2BlockHeight>=3) ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-3] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #else
-      const UInt *scan = uiLog2BlockSize>3 ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-4] : g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+      const UInt *scan = uiLog2BlockSize>3 ? g_auiCoefTopLeftDiagScan8x8[log2BlockWidth-4] : romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #endif
 #else
-      const UInt *scan = g_scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
+      const UInt *scan = romScan->scanOrder[ SCAN_GROUPED_4x4 ][ uiScanIdx ][ log2BlockWidth    ][ log2BlockHeight    ];
 #endif
 #endif
 
@@ -13164,12 +13164,12 @@ Void  TComTrQuant::searchCandidateFromOnePicIntra(TComDataCU *pcCU, UInt uiPartA
 
     UInt uiCUPelY = pcCU->getCUPelY();
     UInt uiCUPelX = pcCU->getCUPelX();
-    Int blkX = g_auiRasterToPelX[g_auiZscanToRaster[uiPartAddr]];
-    Int blkY = g_auiRasterToPelY[g_auiZscanToRaster[uiPartAddr]];
+    Int blkX = romScan->auiRasterToPelX[romScan->auiZscanToRaster[uiPartAddr]];
+    Int blkY = romScan->auiRasterToPelY[romScan->auiZscanToRaster[uiPartAddr]];
     Int iCurrY = uiCUPelY + blkY;
     Int iCurrX = uiCUPelX + blkX;
-    Int offsetLCUY = g_auiRasterToPelY[g_auiZscanToRaster[zOrder]]; //offset in this LCU
-    Int offsetLCUX = g_auiRasterToPelX[g_auiZscanToRaster[zOrder]];
+    Int offsetLCUY = romScan->auiRasterToPelY[romScan->auiZscanToRaster[zOrder]]; //offset in this LCU
+    Int offsetLCUX = romScan->auiRasterToPelX[romScan->auiZscanToRaster[zOrder]];
 
     Int iYOffset, iXOffset;
     DistType diff;
@@ -13243,7 +13243,7 @@ Void  TComTrQuant::searchCandidateFromOnePicIntra(TComDataCU *pcCU, UInt uiPartA
                 refCurr = ref + iYOffset*refStride + iXOffset;
                 Int iLCUX = iXOffset + combinedX;
                 Int iLCUY = iYOffset + combinedY;
-                Int ZorderTmp = getZorder(iLCUX, iLCUY, NumInRow);
+                Int ZorderTmp = romScan->getZorder(iLCUX, iLCUY, NumInRow);
                 if (ZorderTmp >= zOrder)
                 {
                     //Ignore the blocks that have not been coded.

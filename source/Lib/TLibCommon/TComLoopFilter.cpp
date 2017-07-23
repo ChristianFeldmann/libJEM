@@ -221,8 +221,8 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
   {
     for ( UInt uiPartIdx = 0; uiPartIdx < 4; uiPartIdx++, uiAbsZorderIdx+=uiQNumParts )
     {
-      UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsZorderIdx] ];
-      UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsZorderIdx] ];
+      UInt uiLPelX   = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsZorderIdx] ];
+      UInt uiTPelY   = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsZorderIdx] ];
       if( ( uiLPelX < sps.getPicWidthInLumaSamples() ) && ( uiTPelY < sps.getPicHeightInLumaSamples() ) )
       {
 #if JVET_C0024_QTBT
@@ -246,7 +246,7 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
     {
       if (uiPartUnitIdx==1)
       {
-        uiAbsZorderIdx = g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] 
+        uiAbsZorderIdx = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiAbsZorderIdx] 
         + (uiHeight>>1)/uiMinCUH*pcCU->getPic()->getNumPartInCtuWidth()];
       }
       xDeblockCU( pcCU, uiAbsZorderIdx, uiDepth, uiWidth, uiHeight>>1, edgeDir );
@@ -259,7 +259,7 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
     {
       if (uiPartUnitIdx==1)
       {
-        uiAbsZorderIdx = g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] 
+        uiAbsZorderIdx = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiAbsZorderIdx] 
         + (uiWidth>>1)/uiMinCUW];
       }
       xDeblockCU( pcCU, uiAbsZorderIdx, uiDepth, uiWidth>>1, uiHeight, edgeDir );
@@ -283,8 +283,8 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
   {
     for (UInt i=0; i<(edgeDir==EDGE_VER ? 1: uiWidth); i+=uiMinCUW)
     {
-      UInt uiRaster = j/uiMinCUH * pcCU->getPic()->getNumPartInCtuWidth() + i/uiMinCUW + g_auiZscanToRaster[uiAbsZorderIdx];
-      UInt uiPartIdx = g_auiRasterToZscan[uiRaster];
+      UInt uiRaster = j/uiMinCUH * pcCU->getPic()->getNumPartInCtuWidth() + i/uiMinCUW + romScan->auiZscanToRaster[uiAbsZorderIdx];
+      UInt uiPartIdx = romScan->auiRasterToZscan[uiRaster];
       UInt uiBSCheck = 1;
 #else
   const UInt uiPelsInPart = sps.getMaxCUWidth() >> sps.getMaxTotalCUDepth();
@@ -537,8 +537,8 @@ Void TComLoopFilter::xSetEdgefilterPU( TComDataCU* pcCU, UInt uiAbsZorderIdx )
 #endif
 Void TComLoopFilter::xSetLoopfilterParam( TComDataCU* pcCU, UInt uiAbsZorderIdx )
 {
-  UInt uiX           = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[ uiAbsZorderIdx ] ];
-  UInt uiY           = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[ uiAbsZorderIdx ] ];
+  UInt uiX           = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[ uiAbsZorderIdx ] ];
+  UInt uiY           = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[ uiAbsZorderIdx ] ];
 
   TComDataCU* pcTempCU;
   UInt        uiTempPartIdx;
@@ -970,8 +970,8 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* const pcCU, const UInt uiAbs
   Int tcOffsetDiv2 = pcCU->getSlice()->getDeblockingFilterTcOffsetDiv2();
 
   // Vertical Position
-  UInt uiEdgeNumInCtuVert = g_auiZscanToRaster[uiAbsZorderIdx]%uiCtuWidthInBaseUnits + iEdge;
-  UInt uiEdgeNumInCtuHor = g_auiZscanToRaster[uiAbsZorderIdx]/uiCtuWidthInBaseUnits + iEdge;
+  UInt uiEdgeNumInCtuVert = romScan->auiZscanToRaster[uiAbsZorderIdx]%uiCtuWidthInBaseUnits + iEdge;
+  UInt uiEdgeNumInCtuHor = romScan->auiZscanToRaster[uiAbsZorderIdx]/uiCtuWidthInBaseUnits + iEdge;
 
   if ( (uiPelsInPartChromaH < DEBLOCK_SMALLEST_BLOCK) && (uiPelsInPartChromaV < DEBLOCK_SMALLEST_BLOCK) &&
        (

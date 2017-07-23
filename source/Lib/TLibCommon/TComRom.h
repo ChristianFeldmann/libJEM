@@ -54,15 +54,6 @@ Void         reOrderCoeff(TCoeff *pcCoef, const UInt *scan, UInt uiWidth, UInt u
 Void         recoverOrderCoeff(TCoeff *pcCoef, const UInt *scan, UInt uiWidth, UInt uiHeight);
 #endif
 
-#if VCEG_AZ08_INTRA_KLT
-Int          getZorder(Int iLCUX, Int iLCUY, Int NumInRow);
-#endif
-// ====================================================================================================================
-// Initialize / destroy functions
-// ====================================================================================================================
-
-Void         initROM();
-Void         destroyROM();
 
 // ====================================================================================================================
 // Data structure related table & variable
@@ -76,23 +67,43 @@ extern Bool g_bInitAMaxBT;
 #endif
 #endif
 
-// flexible conversion from relative to absolute index
-extern       UInt   g_auiZscanToRaster[ MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH ];
-extern       UInt   g_auiRasterToZscan[ MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH ];
+class TComRomScan
+{
+public:
+  TComRomScan();
+  ~TComRomScan() {};
+
+  // ====================================================================================================================
+  // Initialize / destroy functions
+  // ====================================================================================================================
+
+  Void initROM();
+  Void destroyROM();
+
+  // ====================================================================================================================
+  // Data structure related table & variable
+  // ====================================================================================================================
+
+  // flexible conversion from relative to absolute index
+  UInt   auiZscanToRaster[MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH];
+  UInt   auiRasterToZscan[MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH];
 #if COM16_C806_T64
-extern       UInt*  g_scanOrder[SCAN_NUMBER_OF_GROUP_TYPES][SCAN_NUMBER_OF_TYPES][ MAX_LOG2_TU_SIZE_PLUS_ONE ][ MAX_LOG2_TU_SIZE_PLUS_ONE ];
+  UInt*  scanOrder[SCAN_NUMBER_OF_GROUP_TYPES][SCAN_NUMBER_OF_TYPES][ MAX_LOG2_TU_SIZE_PLUS_ONE ][ MAX_LOG2_TU_SIZE_PLUS_ONE ];
 #else
-extern       UInt*  g_scanOrder[SCAN_NUMBER_OF_GROUP_TYPES][SCAN_NUMBER_OF_TYPES][ MAX_CU_DEPTH ][ MAX_CU_DEPTH ];
+  UInt*  scanOrder[SCAN_NUMBER_OF_GROUP_TYPES][SCAN_NUMBER_OF_TYPES][ MAX_CU_DEPTH ][ MAX_CU_DEPTH ];
 #endif
 
-Void         initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx );
-Void         initRasterToZscan ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth         );
+  Void   initZscanToRaster(Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx);
+  Void   initRasterToZscan(UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth);
 
-// conversion of partition index to picture pel position
-extern       UInt   g_auiRasterToPelX[ MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH ];
-extern       UInt   g_auiRasterToPelY[ MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH ];
+  // conversion of partition index to picture pel position
+  UInt   auiRasterToPelX[MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH];
+  UInt   auiRasterToPelY[MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH];
 
-Void         initRasterToPelXY ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth );
+  Void   initRasterToPelXY(UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth);
+
+  Int    getZorder(Int iLCUX, Int iLCUY, Int NumInRow);
+};
 
 #if !JVET_C0024_QTBT
 extern const UInt g_auiPUOffset[NUMBER_OF_PART_SIZES];

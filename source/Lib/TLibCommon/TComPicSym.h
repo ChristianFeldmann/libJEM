@@ -119,8 +119,10 @@ private:
   Void               setCtuTsToRsAddrMap( Int ctuTsAddr, Int ctuRsAddr )   { *(m_ctuTsToRsAddrMap + ctuTsAddr) = ctuRsAddr; }
   Void               setCtuRsToTsAddrMap( Int ctuRsAddr, Int ctuTsOrder )  { *(m_ctuRsToTsAddrMap + ctuRsAddr) = ctuTsOrder; }
 
+  TComRomScan *romScan;
+
 public:
-  Void               create  ( const TComSPS &sps, const TComPPS &pps, UInt uiMaxDepth );
+  Void               create  ( const TComSPS &sps, const TComPPS &pps, UInt uiMaxDepth, TComRomScan *scan );
   Void               destroy ();
 
   TComPicSym  ();

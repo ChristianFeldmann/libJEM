@@ -778,7 +778,7 @@ Bool TVideoIOYuv::write( TComPicYuv* pPicYuvUser, const InputColourSpaceConversi
   TComPicYuv cPicYuvCSCd;
   if (ipCSC!=IPCOLOURSPACE_UNCHANGED)
   {
-    cPicYuvCSCd.create(pPicYuvUser->getWidth(COMPONENT_Y), pPicYuvUser->getHeight(COMPONENT_Y), pPicYuvUser->getChromaFormat(), pPicYuvUser->getWidth(COMPONENT_Y), pPicYuvUser->getHeight(COMPONENT_Y), 0, false);
+    cPicYuvCSCd.create(pPicYuvUser->getWidth(COMPONENT_Y), pPicYuvUser->getHeight(COMPONENT_Y), pPicYuvUser->getChromaFormat(), pPicYuvUser->getWidth(COMPONENT_Y), pPicYuvUser->getHeight(COMPONENT_Y), 0, false, pPicYuvUser->getRomScan());
     ColourSpaceConvert(*pPicYuvUser, cPicYuvCSCd, ipCSC, false);
   }
   TComPicYuv *pPicYuv=(ipCSC==IPCOLOURSPACE_UNCHANGED) ? pPicYuvUser : &cPicYuvCSCd;
@@ -817,7 +817,7 @@ Bool TVideoIOYuv::write( TComPicYuv* pPicYuvUser, const InputColourSpaceConversi
   if (nonZeroBitDepthShift)
   {
     dstPicYuv = new TComPicYuv;
-    dstPicYuv->create( pPicYuv->getWidth(COMPONENT_Y), pPicYuv->getHeight(COMPONENT_Y), pPicYuv->getChromaFormat(), pPicYuv->getWidth(COMPONENT_Y), pPicYuv->getHeight(COMPONENT_Y), 0, false );
+    dstPicYuv->create( pPicYuv->getWidth(COMPONENT_Y), pPicYuv->getHeight(COMPONENT_Y), pPicYuv->getChromaFormat(), pPicYuv->getWidth(COMPONENT_Y), pPicYuv->getHeight(COMPONENT_Y), 0, false, pPicYuv->getRomScan() );
     pPicYuv->copyToPic(dstPicYuv 
 #if ALF_HM3_REFACTOR
       , MAX_NUM_COMPONENT, false // don't include margin.
@@ -871,8 +871,8 @@ Bool TVideoIOYuv::write( TComPicYuv* pPicYuvUserTop, TComPicYuv* pPicYuvUserBott
   TComPicYuv cPicYuvBottomCSCd;
   if (ipCSC!=IPCOLOURSPACE_UNCHANGED)
   {
-    cPicYuvTopCSCd   .create(pPicYuvUserTop   ->getWidth(COMPONENT_Y), pPicYuvUserTop   ->getHeight(COMPONENT_Y), pPicYuvUserTop   ->getChromaFormat(), pPicYuvUserTop   ->getWidth(COMPONENT_Y), pPicYuvUserTop   ->getHeight(COMPONENT_Y), 0, false);
-    cPicYuvBottomCSCd.create(pPicYuvUserBottom->getWidth(COMPONENT_Y), pPicYuvUserBottom->getHeight(COMPONENT_Y), pPicYuvUserBottom->getChromaFormat(), pPicYuvUserBottom->getWidth(COMPONENT_Y), pPicYuvUserBottom->getHeight(COMPONENT_Y), 0, false);
+    cPicYuvTopCSCd   .create(pPicYuvUserTop   ->getWidth(COMPONENT_Y), pPicYuvUserTop   ->getHeight(COMPONENT_Y), pPicYuvUserTop   ->getChromaFormat(), pPicYuvUserTop   ->getWidth(COMPONENT_Y), pPicYuvUserTop   ->getHeight(COMPONENT_Y), 0, false, pPicYuvUserTop->getRomScan());
+    cPicYuvBottomCSCd.create(pPicYuvUserBottom->getWidth(COMPONENT_Y), pPicYuvUserBottom->getHeight(COMPONENT_Y), pPicYuvUserBottom->getChromaFormat(), pPicYuvUserBottom->getWidth(COMPONENT_Y), pPicYuvUserBottom->getHeight(COMPONENT_Y), 0, false, pPicYuvUserBottom->getRomScan());
     ColourSpaceConvert(*pPicYuvUserTop,    cPicYuvTopCSCd,    ipCSC, false);
     ColourSpaceConvert(*pPicYuvUserBottom, cPicYuvBottomCSCd, ipCSC, false);
   }
@@ -911,7 +911,7 @@ Bool TVideoIOYuv::write( TComPicYuv* pPicYuvUserTop, TComPicYuv* pPicYuvUserBott
     if (nonZeroBitDepthShift)
     {
       dstPicYuv = new TComPicYuv;
-      dstPicYuv->create( pPicYuv->getWidth(COMPONENT_Y), pPicYuv->getHeight(COMPONENT_Y), pPicYuv->getChromaFormat(), pPicYuv->getWidth(COMPONENT_Y), pPicYuv->getHeight(COMPONENT_Y), 0, false );
+      dstPicYuv->create( pPicYuv->getWidth(COMPONENT_Y), pPicYuv->getHeight(COMPONENT_Y), pPicYuv->getChromaFormat(), pPicYuv->getWidth(COMPONENT_Y), pPicYuv->getHeight(COMPONENT_Y), 0, false, pPicYuv->getRomScan() );
       pPicYuv->copyToPic(dstPicYuv
 #if ALF_HM3_REFACTOR
         , MAX_NUM_COMPONENT, false // don't include margin.

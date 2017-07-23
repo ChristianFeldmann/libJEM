@@ -42,6 +42,7 @@
 #include <memory.h>
 #include "CommonDef.h"
 #include "TComMv.h"
+#include "TComRom.h"
 
 #if COM16_C806_VCEG_AZ10_SUB_PU_TMVP || VCEG_AZ07_FRUC_MERGE || JVET_C0024_QTBT
 class TComDataCU;
@@ -121,6 +122,8 @@ private:
   TComDataCU* m_pcCU;
 #endif
 
+  TComRomScan *romScan;
+
   template <typename T>
   Void setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx );
 
@@ -132,7 +135,7 @@ public:
   // create / destroy
   // ------------------------------------------------------------------------------------------------------------------
 
-  Void    create( UInt uiNumPartition );
+  Void    create( UInt uiNumPartition, TComRomScan *scan );
   Void    destroy();
 
   // ------------------------------------------------------------------------------------------------------------------

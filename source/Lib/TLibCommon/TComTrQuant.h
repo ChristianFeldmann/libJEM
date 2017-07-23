@@ -569,6 +569,8 @@ Void InvNsst8x8( Int* src, UInt uiMode, UChar index );
   Void xSetSearchRange(TComDataCU* pcCU, TComMv& cMvPred, Int iSrchRng, TComMv& rcMvSrchRngLT, TComMv& rcMvSrchRngRB);
 #endif
 
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
+
 protected:
 #if ADAPTIVE_QP_SELECTION
   Int     m_qpDelta[MAX_QP+1];
@@ -744,6 +746,8 @@ __inline UInt              xGetCodedLevel  ( Double&          rd64CodedCost,
 
   // inverse skipping transform
   Void xITransformSkip ( TCoeff* plCoef, Pel* pResidual, UInt uiStride, TComTU &rTu, const ComponentID component );
+
+  TComRomScan *romScan;
 
 public:
   static Void crossComponentPrediction(      TComTU      &rTu,

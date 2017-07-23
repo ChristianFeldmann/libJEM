@@ -109,6 +109,8 @@ private:
   Void     setUpLambda(TComSlice* slice, const Double dLambda, Int iQP);
   Void     calculateBoundingCtuTsAddrForSlice(UInt &startCtuTSAddrSlice, UInt &boundingCtuTSAddrSlice, Bool &haveReachedTileBoundary, TComPic* pcPic, const Int sliceMode, const Int sliceArgument);
 
+  TComRomScan *romScan;
+
 public:
   TEncSlice();
   virtual ~TEncSlice();
@@ -162,6 +164,9 @@ public:
 #if VCEG_AZ08_INTER_KLT
   Void   InterpolatePic(TComPic* pcPic);
 #endif
+
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
+
 private:
   Double  xGetQPValueAccordingToLambda ( Double lambda );
 };

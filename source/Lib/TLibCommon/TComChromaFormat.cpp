@@ -141,8 +141,9 @@ Void getTUEntropyCodingParameters(      TUEntropyCodingParameters &result,
   const UInt log2HeightInGroups = g_aucConvertToBit[result.heightInGroups * 4];
 #endif
 
-  result.scan   = g_scanOrder[ SCAN_GROUPED_4x4 ][ result.scanType ][ log2BlockWidth    ][ log2BlockHeight    ];
-  result.scanCG = g_scanOrder[ SCAN_UNGROUPED   ][ result.scanType ][ log2WidthInGroups ][ log2HeightInGroups ];
+  TComRomScan *romScan = pcCU->getRomScan();
+  result.scan   = romScan->scanOrder[ SCAN_GROUPED_4x4 ][ result.scanType ][ log2BlockWidth    ][ log2BlockHeight    ];
+  result.scanCG = romScan->scanOrder[ SCAN_UNGROUPED   ][ result.scanType ][ log2WidthInGroups ][ log2HeightInGroups ];
 
   //------------------------------------------------
 

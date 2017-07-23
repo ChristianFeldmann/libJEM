@@ -67,14 +67,14 @@ Void TEncSlice::create( Int iWidth, Int iHeight, ChromaFormat chromaFormat, UInt
   if ( m_apcPicYuvPred == NULL )
   {
     m_apcPicYuvPred  = new TComPicYuv;
-    m_apcPicYuvPred->create( iWidth, iHeight, chromaFormat, iMaxCUWidth, iMaxCUHeight, uhTotalDepth, true );
+    m_apcPicYuvPred->create( iWidth, iHeight, chromaFormat, iMaxCUWidth, iMaxCUHeight, uhTotalDepth, true, romScan );
   }
 
   // create residual picture
   if( m_apcPicYuvResi == NULL )
   {
     m_apcPicYuvResi  = new TComPicYuv;
-    m_apcPicYuvResi->create( iWidth, iHeight, chromaFormat, iMaxCUWidth, iMaxCUHeight, uhTotalDepth, true );
+    m_apcPicYuvResi->create( iWidth, iHeight, chromaFormat, iMaxCUWidth, iMaxCUHeight, uhTotalDepth, true, romScan );
   }
 }
 

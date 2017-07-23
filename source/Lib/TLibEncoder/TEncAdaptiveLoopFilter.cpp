@@ -175,9 +175,9 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
   
   m_pcPicYuvTmp = new TComPicYuv();
 #if JVET_C0024_QTBT
-  m_pcPicYuvTmp->create(iWidth, iHeight, pcPic->getChromaFormat(), pcPic->getSlice(0)->getSPS()->getCTUSize(), pcPic->getSlice(0)->getSPS()->getCTUSize(), pcPic->getSlice(0)->getSPS()->getMaxTotalCUDepth(), true);
+  m_pcPicYuvTmp->create(iWidth, iHeight, pcPic->getChromaFormat(), pcPic->getSlice(0)->getSPS()->getCTUSize(), pcPic->getSlice(0)->getSPS()->getCTUSize(), pcPic->getSlice(0)->getSPS()->getMaxTotalCUDepth(), true, romScan);
 #else
-  m_pcPicYuvTmp->create(iWidth, iHeight, pcPic->getChromaFormat(), pcPic->getSlice(0)->getSPS()->getMaxCUWidth(), pcPic->getSlice(0)->getSPS()->getMaxCUHeight(), pcPic->getSlice(0)->getSPS()->getMaxTotalCUDepth(), true);
+  m_pcPicYuvTmp->create(iWidth, iHeight, pcPic->getChromaFormat(), pcPic->getSlice(0)->getSPS()->getMaxCUWidth(), pcPic->getSlice(0)->getSPS()->getMaxCUHeight(), pcPic->getSlice(0)->getSPS()->getMaxTotalCUDepth(), true, romScan);
 #endif
   m_pcPicYuvBest = pcPic->getPicYuvPred();
   
@@ -1299,13 +1299,13 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCU(TComDataCU* pcCU, UInt uiAbsPartId
 #endif
 {
   Bool bBoundary = false;
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  UInt uiLPelX   = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
 #if JVET_C0024_QTBT
   UInt uiRPelX   = uiLPelX + uiWidth  - 1;
 #else
   UInt uiRPelX   = uiLPelX + (pcCU->getSlice()->getSPS()->getMaxCUWidth()>>uiDepth)  - 1;
 #endif
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  UInt uiTPelY   = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
 #if JVET_C0024_QTBT
   UInt uiBPelY   = uiTPelY + uiHeight - 1;
 #else
@@ -1325,8 +1325,8 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCU(TComDataCU* pcCU, UInt uiAbsPartId
     UInt uiQNumParts = ( m_pcPic->getNumPartitionsInCtu() >> (uiDepth<<1) )>>2;
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
     {
-      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
+      uiLPelX   = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
+      uiTPelY   = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
       
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getPicWidthInLumaSamples() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getPicHeightInLumaSamples() ) )      
 #if JVET_C0024_QTBT
@@ -3978,13 +3978,13 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
 #if !JVET_C0024_QTBT
   Bool bBoundary = false;
 #endif
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  UInt uiLPelX   = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
 #if JVET_C0024_QTBT
   UInt uiRPelX   = uiLPelX + uiWidth  - 1;
 #else
   UInt uiRPelX   = uiLPelX + (pcCU->getSlice()->getSPS()->getMaxCUWidth()>>uiDepth)  - 1;
 #endif
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
+  UInt uiTPelY   = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
 #if JVET_C0024_QTBT
   UInt uiBPelY   = uiTPelY + uiHeight - 1;
 #else
@@ -4011,8 +4011,8 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlag_qc(TComDataCU* pcCU, UInt uiAbsPa
     UInt uiQNumParts = ( m_pcPic->getNumPartitionsInCtu() >> (uiDepth<<1) )>>2;
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
     {
-      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
+      uiLPelX   = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
+      uiTPelY   = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
       
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getPicWidthInLumaSamples() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getPicHeightInLumaSamples() ) )
 #if JVET_C0024_QTBT

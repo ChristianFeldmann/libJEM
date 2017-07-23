@@ -829,14 +829,14 @@ Void TEncSearch::init(TEncCfg*      pcEncCfg,
 #endif
       for (UInt uiHIdx=0; uiHIdx<uiNumLayersToAllocate; uiHIdx++)
       {
-          m_ppcQTTempTComYuv[uiWIdx][uiHIdx].create(1<<(uiWIdx+MIN_CU_LOG2), 1<<(uiHIdx+MIN_CU_LOG2), pcEncCfg->getChromaFormatIdc() );
+          m_ppcQTTempTComYuv[uiWIdx][uiHIdx].create(1<<(uiWIdx+MIN_CU_LOG2), 1<<(uiHIdx+MIN_CU_LOG2), pcEncCfg->getChromaFormatIdc(), romScan );
 #if JVET_C0024_QTBT
 #if VCEG_AZ08_INTER_KLT
 #if VCEG_AZ08_USE_KLT
           if (m_pcTrQuant->getUseInterKLT())
           {
 #endif
-              m_ppcQTTempTComYuvRec[uiWIdx][uiHIdx].create(1<<(uiWIdx+MIN_CU_LOG2), 1<<(uiHIdx+MIN_CU_LOG2), cform);            
+              m_ppcQTTempTComYuvRec[uiWIdx][uiHIdx].create(1<<(uiWIdx+MIN_CU_LOG2), 1<<(uiHIdx+MIN_CU_LOG2), cform, romScan);            
 #if VCEG_AZ08_USE_KLT
           }
 #endif
@@ -850,8 +850,8 @@ Void TEncSearch::init(TEncCfg*      pcEncCfg,
     m_pcQTTempTComYuv[ui].create( maxCUWidth, maxCUHeight, pcEncCfg->getChromaFormatIdc() );
   }
 #endif
-  m_pcQTTempTransformSkipTComYuv.create( maxCUWidth, maxCUHeight, pcEncCfg->getChromaFormatIdc() );
-  m_tmpYuvPred.create(MAX_CU_SIZE, MAX_CU_SIZE, pcEncCfg->getChromaFormatIdc());
+  m_pcQTTempTransformSkipTComYuv.create( maxCUWidth, maxCUHeight, pcEncCfg->getChromaFormatIdc(), romScan );
+  m_tmpYuvPred.create(MAX_CU_SIZE, MAX_CU_SIZE, pcEncCfg->getChromaFormatIdc(), romScan);
 
 #if COM16_C806_LARGE_CTU
   for( Int n = 0 ; n < NUMBER_OF_STORED_RESIDUAL_TYPES ; n++ )
@@ -875,7 +875,7 @@ Void TEncSearch::init(TEncCfg*      pcEncCfg,
   }
 #endif
 #if COM16_C806_LMCHROMA
-  m_pcQTTempResiTComYuv.create( MAX_CU_SIZE, MAX_CU_SIZE, pcEncCfg->getChromaFormatIdc() );
+  m_pcQTTempResiTComYuv.create( MAX_CU_SIZE, MAX_CU_SIZE, pcEncCfg->getChromaFormatIdc(), romScan );
 #endif
 
 #if COM16_C1016_AFFINE
@@ -2017,8 +2017,8 @@ Void TEncSearch::xIntraCodingTUBlock(       TComYuv*    pcOrgYuv,
 #endif
   const UInt           uiChFinalMode    = ((chFmt == CHROMA_422)       && !bIsLuma) ? g_chroma422IntraAngleMappingTable[uiChCodedMode] : uiChCodedMode;
 
-  const Int            blkX                                 = g_auiRasterToPelX[ g_auiZscanToRaster[ uiAbsPartIdx ] ];
-  const Int            blkY                                 = g_auiRasterToPelY[ g_auiZscanToRaster[ uiAbsPartIdx ] ];
+  const Int            blkX                                 = romScan->auiRasterToPelX[ romScan->auiZscanToRaster[ uiAbsPartIdx ] ];
+  const Int            blkY                                 = romScan->auiRasterToPelY[ romScan->auiZscanToRaster[ uiAbsPartIdx ] ];
   const Int            bufferOffset                         = blkX + (blkY * MAX_CU_SIZE);
         Pel  *const    encoderLumaResidual                  = resiLuma[RESIDUAL_ENCODER_SIDE ] + bufferOffset;
         Pel  *const    reconstructedLumaResidual            = resiLuma[RESIDUAL_RECONSTRUCTED] + bufferOffset;
@@ -6555,10 +6555,10 @@ TEncSearch::estIntraPredChromaQT(TComDataCU* pcCU,
             uiBestMode  = uiModeList[uiMode];
             xSetIntraResultChromaQT( pcRecoYuv, tuRecurseWithPU );
 #if JVET_C0024_QTBT            
-            UInt uiRaster = g_auiZscanToRaster[pcCU->getZorderIdxInCtu()];
+            UInt uiRaster = romScan->auiZscanToRaster[pcCU->getZorderIdxInCtu()];
             for (UInt i=0; i<uiLong; i+=uiShort)
             {
-                UInt uiZorder = g_auiRasterToZscan[uiRaster] - pcCU->getZorderIdxInCtu();
+                UInt uiZorder = romScan->auiRasterToZscan[uiRaster] - pcCU->getZorderIdxInCtu();
 
                 for (UInt componentIndex = COMPONENT_Cb; componentIndex < numberValidComponents; componentIndex++)
                 {
@@ -6586,10 +6586,10 @@ TEncSearch::estIntraPredChromaQT(TComDataCU* pcCU,
 
         //----- set data -----
 #if JVET_C0024_QTBT
-        UInt uiRaster = g_auiZscanToRaster[pcCU->getZorderIdxInCtu()];
+        UInt uiRaster = romScan->auiZscanToRaster[pcCU->getZorderIdxInCtu()];
         for (UInt i=0; i<uiLong; i+=uiShort)
         {
-            UInt uiZorder = g_auiRasterToZscan[uiRaster] - pcCU->getZorderIdxInCtu();
+            UInt uiZorder = romScan->auiRasterToZscan[uiRaster] - pcCU->getZorderIdxInCtu();
 
             for (UInt componentIndex = COMPONENT_Cb; componentIndex < numberValidComponents; componentIndex++)
             {
@@ -6975,7 +6975,7 @@ Void TEncSearch::xFRUCMgrEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iP
         {
           for( Int x = 0 , xRasterOffset = 0 ; x < iWidth ; x += 4 , xRasterOffset++ )
           {
-            UInt idx = g_auiRasterToZscan[g_auiZscanToRaster[pcCU->getZorderIdxInCtu() + uiAbsPartIdx] + yRasterOffset + xRasterOffset] - pcCU->getZorderIdxInCtu();
+            UInt idx = romScan->auiRasterToZscan[romScan->auiZscanToRaster[pcCU->getZorderIdxInCtu() + uiAbsPartIdx] + yRasterOffset + xRasterOffset] - pcCU->getZorderIdxInCtu();
             pacMvField[idx<<1].setMvField( pcCU->getCUMvField( REF_PIC_LIST_0 )->getMv( idx ) , pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( idx ) );
             pacMvField[(idx<<1)+1].setMvField( pcCU->getCUMvField( REF_PIC_LIST_1 )->getMv( idx ) , pcCU->getCUMvField( REF_PIC_LIST_1 )->getRefIdx( idx ) );
             phInterDir[idx] = pcCU->getInterDir( idx );
@@ -9781,10 +9781,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   {
     // Store current results to the temporary buffer
 #if JVET_C0024_QTBT
-      UInt uiRaster = g_auiZscanToRaster[pcCU->getZorderIdxInCtu()];
+      UInt uiRaster = romScan->auiZscanToRaster[pcCU->getZorderIdxInCtu()];
       for (UInt j=0; j<uiLong; j+=uiShort)
       {
-          UInt uiZorder = g_auiRasterToZscan[uiRaster] - pcCU->getZorderIdxInCtu();
+          UInt uiZorder = romScan->auiRasterToZscan[uiRaster] - pcCU->getZorderIdxInCtu();
 
           for( Int componentIndex=0; componentIndex<pcCU->getPic()->getNumberValidComponents(); componentIndex++ )
           {
@@ -9840,10 +9840,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     // Restore the best results from the temporary buffer
 #if JVET_C0024_QTBT
       m_pcRDGoOnSbacCoder->load( m_ppppcRDSbacCoder[ uiWIdx][uiHIdx ][ CI_TEMP_BEST ] );
-      UInt uiRaster = g_auiZscanToRaster[pcCU->getZorderIdxInCtu()];
+      UInt uiRaster = romScan->auiZscanToRaster[pcCU->getZorderIdxInCtu()];
       for (UInt j=0; j<uiLong; j+=uiShort)
       {
-          UInt uiZorder = g_auiRasterToZscan[uiRaster] - pcCU->getZorderIdxInCtu();
+          UInt uiZorder = romScan->auiRasterToZscan[uiRaster] - pcCU->getZorderIdxInCtu();
 
           for( Int componentIndex=0; componentIndex<pcCU->getPic()->getNumberValidComponents(); componentIndex++ )
           {

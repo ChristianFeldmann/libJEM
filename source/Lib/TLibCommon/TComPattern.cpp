@@ -66,8 +66,8 @@ Void fillReferenceSamples( const Int bitDepth,
 
 /// constrained intra prediction
 Bool  isAboveLeftAvailable  ( TComDataCU* pcCU, UInt uiPartIdxLT );
-Int   isAboveAvailable      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags );
-Int   isLeftAvailable       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags );
+Int   isAboveAvailable      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags, TComRomScan *scan );
+Int   isLeftAvailable       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags, TComRomScan *scan );
 #if JVET_C0024_QTBT
 Int   isAboveRightAvailable ( TComDataCU* pcCU, UInt uiPartIdxRT, UInt uiNumUnitsInPU, Bool *bValidFlags );
 Int   isBelowLeftAvailable  ( TComDataCU* pcCU, UInt uiPartIdxLB, UInt uiNumUnitsInPU, Bool* bValidFlags );
@@ -196,8 +196,8 @@ Void TComPrediction::initIntraPatternChType( TComTU &rTu, const ComponentID comp
 
   const Int  iPartIdxStride   = pcCU->getPic()->getNumPartInCtuWidth();
   const UInt uiPartIdxLT      = pcCU->getZorderIdxInCtu() + uiZorderIdxInPart;
-  const UInt uiPartIdxRT      = g_auiRasterToZscan[ g_auiZscanToRaster[ uiPartIdxLT ] +   iTUWidthInUnits  - 1                   ];
-  const UInt uiPartIdxLB      = g_auiRasterToZscan[ g_auiZscanToRaster[ uiPartIdxLT ] + ((iTUHeightInUnits - 1) * iPartIdxStride)];
+  const UInt uiPartIdxRT      = romScan->auiRasterToZscan[ romScan->auiZscanToRaster[ uiPartIdxLT ] +   iTUWidthInUnits  - 1                   ];
+  const UInt uiPartIdxLB      = romScan->auiRasterToZscan[ romScan->auiZscanToRaster[ uiPartIdxLT ] + ((iTUHeightInUnits - 1) * iPartIdxStride)];
 
   Int   iPicStride = pcCU->getPic()->getStride(compID);
   Bool  bNeighborFlags[4 * MAX_NUM_PART_IDXS_IN_CTU_WIDTH + 1];
@@ -205,13 +205,13 @@ Void TComPrediction::initIntraPatternChType( TComTU &rTu, const ComponentID comp
 
   bNeighborFlags[iLeftUnits] = isAboveLeftAvailable( pcCU, uiPartIdxLT );
   iNumIntraNeighbor += bNeighborFlags[iLeftUnits] ? 1 : 0;
-  iNumIntraNeighbor  += isAboveAvailable     ( pcCU, uiPartIdxLT, uiPartIdxRT, (bNeighborFlags + iLeftUnits + 1)                    );
+  iNumIntraNeighbor  += isAboveAvailable     ( pcCU, uiPartIdxLT, uiPartIdxRT, (bNeighborFlags + iLeftUnits + 1)                    , romScan );
 #if JVET_C0024_QTBT
   iNumIntraNeighbor  += isAboveRightAvailable( pcCU, uiPartIdxRT, iTUHeightInUnits, (bNeighborFlags + iLeftUnits + 1 + iTUWidthInUnits ) );
 #else
   iNumIntraNeighbor  += isAboveRightAvailable( pcCU, uiPartIdxLT, uiPartIdxRT, (bNeighborFlags + iLeftUnits + 1 + iTUWidthInUnits ) );
 #endif
-  iNumIntraNeighbor  += isLeftAvailable      ( pcCU, uiPartIdxLT, uiPartIdxLB, (bNeighborFlags + iLeftUnits - 1)                    );
+  iNumIntraNeighbor  += isLeftAvailable      ( pcCU, uiPartIdxLT, uiPartIdxLB, (bNeighborFlags + iLeftUnits - 1)                    , romScan );
 #if JVET_C0024_QTBT
   iNumIntraNeighbor  += isBelowLeftAvailable ( pcCU, uiPartIdxLB, iTUWidthInUnits, (bNeighborFlags + iLeftUnits - 1 - iTUHeightInUnits) );
 #else
@@ -706,10 +706,10 @@ Bool isAboveLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT )
   return bAboveLeftFlag;
 }
 
-Int isAboveAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool *bValidFlags )
+Int isAboveAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool *bValidFlags, TComRomScan *scan )
 {
-  const UInt uiRasterPartBegin = g_auiZscanToRaster[uiPartIdxLT];
-  const UInt uiRasterPartEnd = g_auiZscanToRaster[uiPartIdxRT]+1;
+  const UInt uiRasterPartBegin = scan->auiZscanToRaster[uiPartIdxLT];
+  const UInt uiRasterPartEnd = scan->auiZscanToRaster[uiPartIdxRT]+1;
   const UInt uiIdxStep = 1;
   Bool *pbValidFlags = bValidFlags;
   Int iNumIntra = 0;
@@ -717,7 +717,7 @@ Int isAboveAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
     UInt uiPartAbove;
-    TComDataCU* pcCUAbove = pcCU->getPUAbove( uiPartAbove, g_auiRasterToZscan[uiRasterPart] );
+    TComDataCU* pcCUAbove = pcCU->getPUAbove( uiPartAbove, scan->auiRasterToZscan[uiRasterPart] );
     if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
     {
       if ( pcCUAbove && pcCUAbove->isIntra( uiPartAbove ) )
@@ -747,10 +747,10 @@ Int isAboveAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool
   return iNumIntra;
 }
 
-Int isLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool *bValidFlags )
+Int isLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool *bValidFlags, TComRomScan *scan )
 {
-  const UInt uiRasterPartBegin = g_auiZscanToRaster[uiPartIdxLT];
-  const UInt uiRasterPartEnd = g_auiZscanToRaster[uiPartIdxLB]+1;
+  const UInt uiRasterPartBegin = scan->auiZscanToRaster[uiPartIdxLT];
+  const UInt uiRasterPartEnd = scan->auiZscanToRaster[uiPartIdxLB]+1;
   const UInt uiIdxStep = pcCU->getPic()->getNumPartInCtuWidth();
   Bool *pbValidFlags = bValidFlags;
   Int iNumIntra = 0;
@@ -758,7 +758,7 @@ Int isLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool 
   for ( UInt uiRasterPart = uiRasterPartBegin; uiRasterPart < uiRasterPartEnd; uiRasterPart += uiIdxStep )
   {
     UInt uiPartLeft;
-    TComDataCU* pcCULeft = pcCU->getPULeft( uiPartLeft, g_auiRasterToZscan[uiRasterPart] );
+    TComDataCU* pcCULeft = pcCU->getPULeft( uiPartLeft, scan->auiRasterToZscan[uiRasterPart] );
     if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
     {
       if ( pcCULeft && pcCULeft->isIntra( uiPartLeft ) )

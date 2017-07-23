@@ -324,13 +324,13 @@ Void TComPrediction::initTempBuff(ChromaFormat chromaFormatIDC
     for (UInt i = 0; i < LUMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS; i++)
     {
 #if VCEG_AZ05_BIO
-      m_filteredBlockTmp[i].create(extWidth+4, extHeight + 7+4, chromaFormatIDC);
+      m_filteredBlockTmp[i].create(extWidth+4, extHeight + 7+4, chromaFormatIDC, romScan);
 #else
       m_filteredBlockTmp[i].create(extWidth, extHeight + 7, chromaFormatIDC);
 #endif
       for (UInt j = 0; j < LUMA_INTERPOLATION_FILTER_SUB_SAMPLE_POSITIONS; j++)
       {
-        m_filteredBlock[i][j].create(extWidth, extHeight, chromaFormatIDC);
+        m_filteredBlock[i][j].create(extWidth, extHeight, chromaFormatIDC, romScan);
       }
     }
 
@@ -347,20 +347,20 @@ Void TComPrediction::initTempBuff(ChromaFormat chromaFormatIDC
     for(UInt i=0; i<NUM_REF_PIC_LIST_01; i++)
     {
 #if VCEG_AZ05_BIO
-      m_acYuvPred[i] .create( MAX_CU_SIZE+4, MAX_CU_SIZE+4, chromaFormatIDC );
+      m_acYuvPred[i] .create( MAX_CU_SIZE+4, MAX_CU_SIZE+4, chromaFormatIDC, romScan );
 #else
       m_acYuvPred[i] .create( MAX_CU_SIZE, MAX_CU_SIZE, chromaFormatIDC );
 #endif
     }
 
 #if JVET_E0052_DMVR
-    m_cYuvPredTemp.create( MAX_CU_SIZE+ DMVR_INTME_RANGE*2, MAX_CU_SIZE+ DMVR_INTME_RANGE*2, chromaFormatIDC );
+    m_cYuvPredTemp.create( MAX_CU_SIZE+ DMVR_INTME_RANGE*2, MAX_CU_SIZE+ DMVR_INTME_RANGE*2, chromaFormatIDC, romScan );
 #else
     m_cYuvPredTemp.create( MAX_CU_SIZE, MAX_CU_SIZE, chromaFormatIDC );
 #endif
 #if VCEG_AZ07_FRUC_MERGE
-    m_cYuvPredFrucTemplate[0].create( MAX_CU_SIZE, MAX_CU_SIZE, chromaFormatIDC );
-    m_cYuvPredFrucTemplate[1].create( MAX_CU_SIZE, MAX_CU_SIZE, chromaFormatIDC );
+    m_cYuvPredFrucTemplate[0].create( MAX_CU_SIZE, MAX_CU_SIZE, chromaFormatIDC, romScan );
+    m_cYuvPredFrucTemplate[1].create( MAX_CU_SIZE, MAX_CU_SIZE, chromaFormatIDC, romScan );
 #endif
   }
 
@@ -443,7 +443,7 @@ Void TComPrediction::initTempBuff(ChromaFormat chromaFormatIDC
       delete m_tempPicYuv;
     }
     m_tempPicYuv = new TComPicYuv;
-    m_tempPicYuv->create( iPicWidth , iPicHeight , chromaFormatIDC , uiMaxCUWidth , uiMaxCUHeight , uiMaxCUDepth , true );
+    m_tempPicYuv->create( iPicWidth , iPicHeight , chromaFormatIDC , uiMaxCUWidth , uiMaxCUHeight , uiMaxCUDepth , true, romScan );
   }
 #endif
 }
@@ -867,7 +867,7 @@ Void TComPrediction::predIntraAng( const ComponentID compID, UInt uiDirMode, Pel
     if( isChroma(pcCU->getTextType()) )
     {
       UInt absPartIdx = pcCU->getZorderIdxInCtu() + uiAbsPartIdx;
-      absPartIdx = g_auiRasterToZscan[ g_auiZscanToRaster[absPartIdx] + ( pcCU->getHeight(uiAbsPartIdx)/pcCU->getPic()->getMinCUHeight() )/2*pcCU->getPic()->getNumPartInCtuWidth() + ( pcCU->getWidth(uiAbsPartIdx)/pcCU->getPic()->getMinCUWidth() )/2];
+      absPartIdx = romScan->auiRasterToZscan[ romScan->auiZscanToRaster[absPartIdx] + ( pcCU->getHeight(uiAbsPartIdx)/pcCU->getPic()->getMinCUHeight() )/2*pcCU->getPic()->getNumPartInCtuWidth() + ( pcCU->getWidth(uiAbsPartIdx)/pcCU->getPic()->getMinCUWidth() )/2];
       iPdpcIdx = pcCU->getPic()->getCtu(pcCU->getCtuRsAddr())->isIntra(absPartIdx) ? pcCU->getPic()->getCtu(pcCU->getCtuRsAddr())->getPDPCIdx(absPartIdx) : 0;
     }
 
@@ -1514,8 +1514,8 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
     UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB, uiAbsIndexInLCU;
     uiAbsIndexInLCU = pcCU->getZorderIdxInCtu();
     uiPartIdxLT = uiPartAddr + uiAbsIndexInLCU;
-    uiPartIdxRT = g_auiRasterToZscan [ g_auiZscanToRaster[ uiPartIdxLT ] + iWidth / pcCU->getPic()->getMinCUWidth() - 1 ];
-    uiPartIdxLB = g_auiRasterToZscan [ g_auiZscanToRaster[ uiPartIdxLT ] + ( (iHeight / pcCU->getPic()->getMinCUHeight()) - 1 ) * pcCU->getPic()->getNumPartInCtuWidth() ];
+    uiPartIdxRT = romScan->auiRasterToZscan [ romScan->auiZscanToRaster[ uiPartIdxLT ] + iWidth / pcCU->getPic()->getMinCUWidth() - 1 ];
+    uiPartIdxLB = romScan->auiRasterToZscan [ romScan->auiZscanToRaster[ uiPartIdxLT ] + ( (iHeight / pcCU->getPic()->getMinCUHeight()) - 1 ) * pcCU->getPic()->getNumPartInCtuWidth() ];
 
     acMv[0] = pcCU->getCUMvField( eRefPicList )->getMv( uiPartIdxLT - uiAbsIndexInLCU );  pcCU->clipMv(acMv[0]);
     acMv[1] = pcCU->getCUMvField( eRefPicList )->getMv( uiPartIdxRT - uiAbsIndexInLCU );  pcCU->clipMv(acMv[1]);
@@ -1538,7 +1538,7 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   Int nBlkStepY = iHeight;
   Int xRasterOffsetStep = 0;
   Int yRasterOffsetStep = 0;
-  UInt uiIdxRasterStart = g_auiZscanToRaster[pcCU->getZorderIdxInCtu() + uiPartAddr];
+  UInt uiIdxRasterStart = romScan->auiZscanToRaster[pcCU->getZorderIdxInCtu() + uiPartAddr];
   Int nBlkMCWidth = iWidth;
   if( 
 #if VCEG_AZ07_FRUC_MERGE
@@ -1583,7 +1583,7 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   {
     for( Int x = 0 , xRasterOffset = 0 ; x < nBlkWidth ; x += nBlkStepX , xRasterOffset += xRasterOffsetStep )
     {
-      uiPartAddr = g_auiRasterToZscan[uiIdxRasterStart+yRasterOffset+xRasterOffset] - pcCU->getZorderIdxInCtu();
+      uiPartAddr = romScan->auiRasterToZscan[uiIdxRasterStart+yRasterOffset+xRasterOffset] - pcCU->getZorderIdxInCtu();
 #endif
   Int         iRefIdx     = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );           assert (iRefIdx >= 0);
   TComMv      cMv         = pcCU->getCUMvField( eRefPicList )->getMv( uiPartAddr );
@@ -1594,7 +1594,7 @@ Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWid
   iWidth = nBlkMCWidth;
   for( Int xLater = x + nBlkStepX , xRasterOffsetLater = xRasterOffset + xRasterOffsetStep ; xLater < nBlkWidth ; xLater += nBlkStepX , xRasterOffsetLater += xRasterOffsetStep )
   {
-    UInt uiPartAddrLater = g_auiRasterToZscan[uiIdxRasterStart+yRasterOffset+xRasterOffsetLater] - pcCU->getZorderIdxInCtu();
+    UInt uiPartAddrLater = romScan->auiRasterToZscan[uiIdxRasterStart+yRasterOffset+xRasterOffsetLater] - pcCU->getZorderIdxInCtu();
     if( pcCU->getCUMvField( eRefPicList )->getMv( uiPartAddrLater ) == cMv 
 #if COM16_C1045_BIO_HARMO_IMPROV
       && pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddrLater ) == iRefIdx 
@@ -1667,7 +1667,7 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
   Int nBlkStepY = iHeight;
   Int xRasterOffsetStep = 0;
   Int yRasterOffsetStep = 0;
-  UInt uiIdxRasterStart = g_auiZscanToRaster[pcCU->getZorderIdxInCtu() + uiPartAddr];
+  UInt uiIdxRasterStart = romScan->auiZscanToRaster[pcCU->getZorderIdxInCtu() + uiPartAddr];
   if( 
 #if VCEG_AZ07_FRUC_MERGE
     !bOBMC 
@@ -1699,7 +1699,7 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
   {
     for( Int x = 0 , xRasterOffset = 0 ; x < nBlkWidth ; x += nBlkStepX , xRasterOffset += xRasterOffsetStep )
     {
-      uiPartAddr = g_auiRasterToZscan[uiIdxRasterStart+yRasterOffset+xRasterOffset] - pcCU->getZorderIdxInCtu();
+      uiPartAddr = romScan->auiRasterToZscan[uiIdxRasterStart+yRasterOffset+xRasterOffset] - pcCU->getZorderIdxInCtu();
 #endif
 #if VCEG_AZ05_BIO 
   Int      FrameNumber[3] = {-1, -1,-1};
@@ -3728,7 +3728,7 @@ Void TComPrediction::subBlockOBMC( TComDataCU*  pcCU, UInt uiAbsPartIdx, TComYuv
 
   UInt uiSubPartIdx      = 0;
   UInt uiZeroIdx         = pcCU->getZorderIdxInCtu();
-  UInt uiAbsPartIdxLCURaster = g_auiZscanToRaster[uiAbsPartIdx + uiZeroIdx];
+  UInt uiAbsPartIdxLCURaster = romScan->auiZscanToRaster[uiAbsPartIdx + uiZeroIdx];
 #if JVET_C0024_QTBT
   Bool bOBMCSimp         = uiWidth * uiHeight < 64;
 #else
@@ -3860,7 +3860,7 @@ Void TComPrediction::subBlockOBMC( TComDataCU*  pcCU, UInt uiAbsPartIdx, TComYuv
       Bool bCUBBoundary = ( iSubY == uiHeightInBlock - 1 );
 
       bCurrMotStored    = false;
-      uiSubPartIdx      = g_auiRasterToZscan[uiAbsPartIdxLCURaster + iSubX + iSubY*uiMaxWidthInBlock] - uiZeroIdx;
+      uiSubPartIdx      = romScan->auiRasterToZscan[uiAbsPartIdxLCURaster + iSubX + iSubY*uiMaxWidthInBlock] - uiZeroIdx;
 
       for( Int iDir = 0; iDir < maxDir; iDir++ ) //iDir: 0 - above, 1 - left, 2 - below, 3 - right
       {
@@ -4941,8 +4941,8 @@ Bool TComPrediction::xFrucRefineSubBlkMv( TComDataCU * pCU , UInt uiDepth , UInt
   {
     for( Int x = 0 , xBlk4Offset = 0 ; x < nWidth ; x += nRefineBlockSize , xBlk4Offset += nRefineBlkStep )
     {
-      UInt uiRasterOrder = g_auiZscanToRaster[uiAbsPartIdx+pCU->getZorderIdxInCtu()] + yBlk4Offset + xBlk4Offset;
-      UInt uiSubBlkIdx = g_auiRasterToZscan[uiRasterOrder] - pCU->getZorderIdxInCtu();
+      UInt uiRasterOrder = romScan->auiZscanToRaster[uiAbsPartIdx+pCU->getZorderIdxInCtu()] + yBlk4Offset + xBlk4Offset;
+      UInt uiSubBlkIdx = romScan->auiRasterToZscan[uiRasterOrder] - pCU->getZorderIdxInCtu();
 
       // start from the best Mv of the full block
       TComMvField mvStart[2] , mvFinal[2];
@@ -5135,7 +5135,7 @@ Void TComPrediction::xFrucCollectBlkStartMv( TComDataCU * pCU , UInt uiPUIdx , R
   {
     TComDataCU * pCUFRUC = pCU->getPic()->getCtu( pCU->getCtuRsAddr() );
     TComMvField mvCand;
-    UInt uiRasterBase = g_auiZscanToRaster[pCU->getZorderIdxInCtu() + uiAddrOffset];
+    UInt uiRasterBase = romScan->auiZscanToRaster[pCU->getZorderIdxInCtu() + uiAddrOffset];
     for( Int y = 0 , yOffset = 0 ; y < nHeight ; y += MIN_PU_SIZE , yOffset += pCU->getPic()->getNumPartInCtuWidth() )
     {
       for( Int x = 0 , xOffset = 0 ; x < nWidth ; x += MIN_PU_SIZE , xOffset++ )
@@ -5144,7 +5144,7 @@ Void TComPrediction::xFrucCollectBlkStartMv( TComDataCU * pCU , UInt uiPUIdx , R
           continue;
         if( y != 0 && y + y != nHeight )
           continue;
-        UInt idx = g_auiRasterToZscan[uiRasterBase+yOffset+xOffset];
+        UInt idx = romScan->auiRasterToZscan[uiRasterBase+yOffset+xOffset];
         for( Int nList = 0 ; nList < 2 ; nList++ )
         {
           RefPicList eCurList = ( RefPicList )nList;
@@ -5868,8 +5868,8 @@ Void TComPrediction::xMPIredFiltering( Pel* pSrc, Int iSrcStride, Pel*& rpDst, I
 
 #if COM16_C806_LMCHROMA
 
-Int   isAboveAvailable      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags ); // ??? to be updated
-Int   isLeftAvailable       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags ); 
+Int   isAboveAvailable      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags, TComRomScan *scan ); // ??? to be updated
+Int   isLeftAvailable       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags, TComRomScan *scan ); 
 
 /** Function for deriving chroma LM intra prediction.
  * \param pcPattern pointer to neighbouring pixel access pattern
@@ -6066,17 +6066,17 @@ Void TComPrediction::getLumaRecPixels( TComTU& rTu, UInt uiCWidth, UInt uiCHeigh
 
   const Int  iPartIdxStride   = pcCU->getPic()->getNumPartInCtuWidth();
   const UInt uiPartIdxLT      = pcCU->getZorderIdxInCtu() + uiZorderIdxInPart;
-  const UInt uiPartIdxRT      = g_auiRasterToZscan[ g_auiZscanToRaster[ uiPartIdxLT ] +   iTUWidthInUnits  - 1                   ];
-  const UInt uiPartIdxLB      = g_auiRasterToZscan[ g_auiZscanToRaster[ uiPartIdxLT ] + ((iTUHeightInUnits - 1) * iPartIdxStride)];
+  const UInt uiPartIdxRT      = romScan->auiRasterToZscan[ romScan->auiZscanToRaster[ uiPartIdxLT ] +   iTUWidthInUnits  - 1                   ];
+  const UInt uiPartIdxLB      = romScan->auiRasterToZscan[ romScan->auiZscanToRaster[ uiPartIdxLT ] + ((iTUHeightInUnits - 1) * iPartIdxStride)];
   
   Bool tempbuf[MAX_NUM_PART_IDXS_IN_CTU_WIDTH*4+1];
-  Int availlableUnit = isLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB, tempbuf+MAX_NUM_PART_IDXS_IN_CTU_WIDTH);
+  Int availlableUnit = isLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB, tempbuf+MAX_NUM_PART_IDXS_IN_CTU_WIDTH, romScan);
 #if JVET_C0024_QTBT
   Bool bLeftAvaillable = availlableUnit == iTUHeightInUnits ? true : false; 
 #else
   Bool bLeftAvaillable = availlableUnit == iTUWidthInUnits ? true : false; 
 #endif
-  availlableUnit = isAboveAvailable( pcCU, uiPartIdxLT, uiPartIdxRT, tempbuf+MAX_NUM_PART_IDXS_IN_CTU_WIDTH);
+  availlableUnit = isAboveAvailable( pcCU, uiPartIdxLT, uiPartIdxRT, tempbuf+MAX_NUM_PART_IDXS_IN_CTU_WIDTH, romScan);
 #if JVET_C0024_QTBT
   Bool bAboveAvaillable = availlableUnit == iTUWidthInUnits ? true : false; 
 #else
@@ -6661,17 +6661,17 @@ Int TComPrediction::xGetMMLMParameters(TComTU& rTu, const ComponentID compID, UI
 
     const Int  iPartIdxStride = pcCU->getPic()->getNumPartInCtuWidth();
     const UInt uiPartIdxLT = pcCU->getZorderIdxInCtu() + uiZorderIdxInPart;
-    const UInt uiPartIdxRT = g_auiRasterToZscan[g_auiZscanToRaster[uiPartIdxLT] + iTUWidthInUnits - 1];
-    const UInt uiPartIdxLB = g_auiRasterToZscan[g_auiZscanToRaster[uiPartIdxLT] + ((iTUHeightInUnits - 1) * iPartIdxStride)];
+    const UInt uiPartIdxRT = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiPartIdxLT] + iTUWidthInUnits - 1];
+    const UInt uiPartIdxLB = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiPartIdxLT] + ((iTUHeightInUnits - 1) * iPartIdxStride)];
 
     Bool tempbuf[MAX_NUM_PART_IDXS_IN_CTU_WIDTH * 4 + 1];
-    Int availlableUnit = isLeftAvailable(pcCU, uiPartIdxLT, uiPartIdxLB, tempbuf + MAX_NUM_PART_IDXS_IN_CTU_WIDTH);
+    Int availlableUnit = isLeftAvailable(pcCU, uiPartIdxLT, uiPartIdxLB, tempbuf + MAX_NUM_PART_IDXS_IN_CTU_WIDTH, romScan);
 #if JVET_C0024_QTBT
     Bool bLeftAvaillable = availlableUnit == iTUHeightInUnits ? true : false;
 #else
     Bool bLeftAvaillable = availlableUnit == iTUWidthInUnits ? true : false;
 #endif
-    availlableUnit = isAboveAvailable(pcCU, uiPartIdxLT, uiPartIdxRT, tempbuf + MAX_NUM_PART_IDXS_IN_CTU_WIDTH);
+    availlableUnit = isAboveAvailable(pcCU, uiPartIdxLT, uiPartIdxRT, tempbuf + MAX_NUM_PART_IDXS_IN_CTU_WIDTH, romScan);
 #if JVET_C0024_QTBT
     Bool bAboveAvaillable = availlableUnit == iTUWidthInUnits ? true : false;
 #else
@@ -6904,17 +6904,17 @@ Void TComPrediction::xGetLMParameters( TComTU& rTu, const ComponentID compID, UI
 
   const Int  iPartIdxStride   = pcCU->getPic()->getNumPartInCtuWidth();
   const UInt uiPartIdxLT      = pcCU->getZorderIdxInCtu() + uiZorderIdxInPart;
-  const UInt uiPartIdxRT      = g_auiRasterToZscan[ g_auiZscanToRaster[ uiPartIdxLT ] +   iTUWidthInUnits  - 1                   ];
-  const UInt uiPartIdxLB      = g_auiRasterToZscan[ g_auiZscanToRaster[ uiPartIdxLT ] + ((iTUHeightInUnits - 1) * iPartIdxStride)];
+  const UInt uiPartIdxRT      = romScan->auiRasterToZscan[ romScan->auiZscanToRaster[ uiPartIdxLT ] +   iTUWidthInUnits  - 1                   ];
+  const UInt uiPartIdxLB      = romScan->auiRasterToZscan[ romScan->auiZscanToRaster[ uiPartIdxLT ] + ((iTUHeightInUnits - 1) * iPartIdxStride)];
 
   Bool tempbuf[MAX_NUM_PART_IDXS_IN_CTU_WIDTH*4+1];
-  Int availlableUnit = isLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB, tempbuf+MAX_NUM_PART_IDXS_IN_CTU_WIDTH);
+  Int availlableUnit = isLeftAvailable ( pcCU, uiPartIdxLT, uiPartIdxLB, tempbuf+MAX_NUM_PART_IDXS_IN_CTU_WIDTH, romScan);
 #if JVET_C0024_QTBT
   Bool bLeftAvaillable = availlableUnit == iTUHeightInUnits ? true : false; 
 #else
   Bool bLeftAvaillable = availlableUnit == iTUWidthInUnits ? true : false; 
 #endif
-  availlableUnit = isAboveAvailable( pcCU, uiPartIdxLT, uiPartIdxRT, tempbuf+MAX_NUM_PART_IDXS_IN_CTU_WIDTH);
+  availlableUnit = isAboveAvailable( pcCU, uiPartIdxLT, uiPartIdxRT, tempbuf+MAX_NUM_PART_IDXS_IN_CTU_WIDTH, romScan);
 #if JVET_C0024_QTBT
   Bool bAboveAvaillable = availlableUnit == iTUWidthInUnits ? true : false; 
 #else
@@ -7093,8 +7093,8 @@ Bool TComPrediction::xCheckIdenticalAffineMotion ( TComDataCU* pcCU, UInt PartAd
         UInt uiPartIdxLT, uiPartIdxRT, uiPartIdxLB, uiAbsIndexInLCU;
         uiAbsIndexInLCU = pcCU->getZorderIdxInCtu();
         uiPartIdxLT = PartAddr + uiAbsIndexInLCU;
-        uiPartIdxRT = g_auiRasterToZscan [ g_auiZscanToRaster[ uiPartIdxLT ] + iWidth / pcCU->getPic()->getMinCUWidth() - 1 ] - uiAbsIndexInLCU;
-        uiPartIdxLB = g_auiRasterToZscan [ g_auiZscanToRaster[ uiPartIdxLT ] + ( (iHeight / pcCU->getPic()->getMinCUHeight()) - 1 ) * pcCU->getPic()->getNumPartInCtuWidth() ] - uiAbsIndexInLCU;
+        uiPartIdxRT = romScan->auiRasterToZscan [ romScan->auiZscanToRaster[ uiPartIdxLT ] + iWidth / pcCU->getPic()->getMinCUWidth() - 1 ] - uiAbsIndexInLCU;
+        uiPartIdxLB = romScan->auiRasterToZscan [ romScan->auiZscanToRaster[ uiPartIdxLT ] + ( (iHeight / pcCU->getPic()->getMinCUHeight()) - 1 ) * pcCU->getPic()->getNumPartInCtuWidth() ] - uiAbsIndexInLCU;
         uiPartIdxLT = PartAddr;
 
         if ( pcCU->getCUMvField(REF_PIC_LIST_0)->getMv(uiPartIdxLT) == pcCU->getCUMvField(REF_PIC_LIST_1)->getMv(uiPartIdxLT)

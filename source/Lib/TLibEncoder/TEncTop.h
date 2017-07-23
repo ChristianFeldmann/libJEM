@@ -224,6 +224,9 @@ public:
 #if ALF_HM3_REFACTOR
   TEncAdaptiveLoopFilter* getAdaptiveLoopFilter () { return  &m_cAdaptiveLoopFilter;  }
 #endif
+
+  // The instance of TComRomScan that can convertr from raster to Z-scan and vise-versa. It is initialized in TDecCU::Create
+  TComRomScan          romScan;
 };
 
 //! \}

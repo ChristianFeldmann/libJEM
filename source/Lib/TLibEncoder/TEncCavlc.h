@@ -74,6 +74,8 @@ protected:
   Void codeShortTermRefPicSet              ( const TComReferencePictureSet* pcRPS, Bool calledFromSliceHeader, Int idx );
   Bool findMatchingLTRP ( TComSlice* pcSlice, UInt *ltrpsIndex, Int ltrpPOC, Bool usedFlag );
 
+  TComRomScan *romScan;
+
 public:
 
   Void  resetEntropy          (const TComSlice *pSlice);
@@ -228,6 +230,8 @@ public:
 #if COM16_C1016_AFFINE
   Void codeAffineFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
+
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
 };
 
 //! \}

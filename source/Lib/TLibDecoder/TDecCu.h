@@ -116,6 +116,8 @@ public:
   /// reconstruct Ctu information
   Void  decompressCtu           ( TComDataCU* pCtu );
 
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
+
 #if VCEG_AZ08_INTER_KLT
   TComPrediction* getPointerPrediction() { return m_pcPrediction; }
 #endif
@@ -163,6 +165,8 @@ protected:
 #if VCEG_AZ07_FRUC_MERGE || JVET_C0024_QTBT
   Void xDeriveCUMV              ( TComDataCU * pcCU , UInt uiAbsPartIdx , UInt uiDepth );
 #endif
+
+  TComRomScan *romScan;
 };
 
 //! \}

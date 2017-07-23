@@ -288,6 +288,8 @@ protected:
 
   Void xDeriveCenterIdx( UInt uiPartIdx, UInt& ruiPartIdxCenter );
 
+  TComRomScan *romScan;
+
 public:
   TComDataCU();
   virtual ~TComDataCU();
@@ -296,7 +298,7 @@ public:
   // create / destroy / initialize / copy
   // -------------------------------------------------------------------------------------------------------------------
 
-  Void          create                ( ChromaFormat chromaFormatIDC, UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize
+  Void          create                ( ChromaFormat chromaFormatIDC, UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize, TComRomScan *scan
 #if JVET_C0024_QTBT
     , UInt uiCUWidth, UInt uiCUHeight
 #endif
@@ -1016,6 +1018,8 @@ public:
 #if VCEG_AZ08_INTER_KLT
   Void          interpolatePic                 ( TComPic* pcPic );
 #endif
+
+  TComRomScan *getRomScan() { return romScan; }
 };
 
 namespace RasterAddress

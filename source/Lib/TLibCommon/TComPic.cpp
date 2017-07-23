@@ -72,7 +72,7 @@ TComPic::~TComPic()
 {
 }
 
-Void TComPic::create( const TComSPS &sps, const TComPPS &pps, const Bool bIsVirtual)
+Void TComPic::create( const TComSPS &sps, const TComPPS &pps, const Bool bIsVirtual, TComRomScan *scan)
 {
   const ChromaFormat chromaFormatIDC = sps.getChromaFormatIdc();
   const Int          iWidth          = sps.getPicWidthInLumaSamples();
@@ -93,13 +93,15 @@ Void TComPic::create( const TComSPS &sps, const TComPPS &pps, const Bool bIsVirt
   m_iBaseUnitHeight                  = uiMaxCuHeight >> uiMaxDepth;
 #endif
 
-  m_picSym.create( sps, pps, uiMaxDepth );
+  romScan = scan;
+
+  m_picSym.create( sps, pps, uiMaxDepth, romScan );
   if (!bIsVirtual)
   {
-    m_apcPicYuv[PIC_YUV_ORG    ]   = new TComPicYuv;  m_apcPicYuv[PIC_YUV_ORG     ]->create( iWidth, iHeight, chromaFormatIDC, uiMaxCuWidth, uiMaxCuHeight, uiMaxDepth, true );
-    m_apcPicYuv[PIC_YUV_TRUE_ORG]  = new TComPicYuv;  m_apcPicYuv[PIC_YUV_TRUE_ORG]->create( iWidth, iHeight, chromaFormatIDC, uiMaxCuWidth, uiMaxCuHeight, uiMaxDepth, true );
+    m_apcPicYuv[PIC_YUV_ORG    ]   = new TComPicYuv;  m_apcPicYuv[PIC_YUV_ORG     ]->create( iWidth, iHeight, chromaFormatIDC, uiMaxCuWidth, uiMaxCuHeight, uiMaxDepth, true, romScan );
+    m_apcPicYuv[PIC_YUV_TRUE_ORG]  = new TComPicYuv;  m_apcPicYuv[PIC_YUV_TRUE_ORG]->create( iWidth, iHeight, chromaFormatIDC, uiMaxCuWidth, uiMaxCuHeight, uiMaxDepth, true, romScan );
   }
-  m_apcPicYuv[PIC_YUV_REC]  = new TComPicYuv;  m_apcPicYuv[PIC_YUV_REC]->create( iWidth, iHeight, chromaFormatIDC, uiMaxCuWidth, uiMaxCuHeight, uiMaxDepth, true );
+  m_apcPicYuv[PIC_YUV_REC]  = new TComPicYuv;  m_apcPicYuv[PIC_YUV_REC]->create( iWidth, iHeight, chromaFormatIDC, uiMaxCuWidth, uiMaxCuHeight, uiMaxDepth, true, romScan );
 
 #if VCEG_AZ08_INTER_KLT
 #if VCEG_AZ08_USE_KLT
@@ -117,7 +119,7 @@ Void TComPic::create( const TComSPS &sps, const TComPPS &pps, const Bool bIsVirt
               else
               {
                   m_apcQuaPicYuv[uiRow][uiCol] = new TComPicYuv;
-                  m_apcQuaPicYuv[uiRow][uiCol]->create(iWidth, iHeight, chromaFormatIDC, uiMaxCuWidth, uiMaxCuHeight, uiMaxDepth, true);
+                  m_apcQuaPicYuv[uiRow][uiCol]->create(iWidth, iHeight, chromaFormatIDC, uiMaxCuWidth, uiMaxCuHeight, uiMaxDepth, true, romScan);
               }
           }
       }
@@ -240,7 +242,7 @@ Void TComPic::getCUAddrAndPartIdx( Int iX, Int iY, Int& riCuAddr, Int& riAbsZord
   Int iCuSizeInBases  = iMaxCUWidth                  / m_iBaseUnitWidth;
   riCuAddr            = iCuY   * m_iNumCuInWidth + iCuX;
   Int iRastPartIdx    = iBaseY * iCuSizeInBases  + iBaseX;
-  riAbsZorderIdx      = g_auiRasterToZscan[ iRastPartIdx ];
+  riAbsZorderIdx      = romScan->auiRasterToZscan[ iRastPartIdx ];
 }
 #endif
 

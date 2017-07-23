@@ -77,6 +77,18 @@ TEncTop::TEncTop()
 #if FAST_BIT_EST && !VCEG_AZ07_BAC_ADAPT_WDOW && ! VCEG_AZ05_MULTI_PARAM_CABAC
   ContextModel::buildNextStateTable();
 #endif
+
+  romScan.initROM();
+  m_cLoopFilter.setTComRomScan(&romScan);
+  m_cSliceEncoder.setTComRomScan(&romScan);
+  m_cSearch.setTComRomScan(&romScan);
+  m_cGOPEncoder.setTComRomScan(&romScan);
+  m_cCuEncoder.setTComRomScan(&romScan);
+  m_cCavlcCoder.setTComRomScan(&romScan);
+  m_cTrQuant.setTComRomScan(&romScan);
+#if ALF_HM3_REFACTOR
+  m_cAdaptiveLoopFilter.setTComRomScan(&romScan);
+#endif
 }
 
 TEncTop::~TEncTop()
@@ -87,13 +99,11 @@ TEncTop::~TEncTop()
     fclose( g_hTrace );
   }
 #endif
+  romScan.destroyROM();
 }
 
 Void TEncTop::create ()
 {
-  // initialize global variables
-  initROM();
-
   // create processing unit classes
   m_cGOPEncoder.        create( );
 #if JVET_C0024_QTBT
@@ -280,10 +290,7 @@ Void TEncTop::destroy ()
   delete [] m_pppcRDSbacCoder;
   delete [] m_pppcBinCoderCABAC;
 #endif
-
-  // destroy ROM
-  destroyROM();
-
+  
   return;
 }
 
@@ -545,7 +552,7 @@ Void TEncTop::encode(Bool flush, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvTr
         {
           rpcPicYuvRec = new TComPicYuv;
 #if JVET_C0024_QTBT
-          rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_CTUSize, m_CTUSize, m_maxTotalCUDepth, true);
+          rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_CTUSize, m_CTUSize, m_maxTotalCUDepth, true, &romScan);
 #else
           rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_chromaFormatIDC, m_maxCUWidth, m_maxCUHeight, m_maxTotalCUDepth, true);
 #endif
@@ -640,13 +647,13 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
     if ( getUseAdaptiveQP() )
     {
       TEncPic* pcEPic = new TEncPic;
-      pcEPic->create( m_cSPS, m_cPPS, m_cPPS.getMaxCuDQPDepth()+1, false);
+      pcEPic->create( m_cSPS, m_cPPS, m_cPPS.getMaxCuDQPDepth()+1, false, &romScan);
       rpcPic = pcEPic;
     }
     else
     {
       rpcPic = new TComPic;
-      rpcPic->create( m_cSPS, m_cPPS, false );
+      rpcPic->create( m_cSPS, m_cPPS, false, &romScan );
     }
 
     m_cListPic.pushBack( rpcPic );

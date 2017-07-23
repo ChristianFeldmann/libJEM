@@ -50,6 +50,17 @@
 // Initialize / destroy functions
 // ====================================================================================================================
 
+TComRomScan::TComRomScan()
+{ 
+  for (int i=0; i<MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH; i++)
+  {
+    auiZscanToRaster[i] = 0;
+    auiRasterToZscan[i] = 0;
+    auiRasterToPelX[i] = 0;
+    auiRasterToPelY[i] = 0;
+  }
+}
+
 //! \ingroup TLibCommon
 //! \{
 #if JVET_C0024_AMAX_BT
@@ -89,11 +100,11 @@ Void recoverOrderCoeff(TCoeff *pcCoef, const UInt *scan, UInt uiWidth, UInt uiHe
 }
 #endif
 #if VCEG_AZ08_INTRA_KLT
-Int getZorder(Int iLCUX, Int iLCUY, Int NumInRow)
+Int TComRomScan::getZorder(Int iLCUX, Int iLCUY, Int NumInRow)
 {
     //get raster id
     Int rasterId = (iLCUY >> 2)*NumInRow + (iLCUX >> 2);
-    Int zOrder = g_auiRasterToZscan[rasterId];
+    Int zOrder = auiRasterToZscan[rasterId];
     return zOrder;
 }
 #endif
@@ -272,7 +283,7 @@ Int g_aiLMCodeWord[LM_SYMBOL_NUM][16];
 #endif
 
 // initialize ROM variables
-Void initROM()
+Void TComRomScan::initROM()
 {
   Int i, c;
 
@@ -416,14 +427,14 @@ Void initROM()
       {
         const COEFF_SCAN_TYPE scanType = COEFF_SCAN_TYPE(scanTypeIndex);
 
-        g_scanOrder[SCAN_UNGROUPED][scanType][log2BlockWidth][log2BlockHeight] = new UInt[totalValues];
+        scanOrder[SCAN_UNGROUPED][scanType][log2BlockWidth][log2BlockHeight] = new UInt[totalValues];
 
 #if VCEG_AZ07_CTX_RESIDUALCODING
         if (scanType == SCAN_VER && log2BlockWidth == 1 && log2BlockHeight == 1) 
         {
           for (UInt scanPosition = 0; scanPosition < totalValues; scanPosition++)
           {
-            g_scanOrder[SCAN_UNGROUPED][scanTypeIndex][log2BlockWidth][log2BlockHeight][scanPosition] = g_scanOrder[SCAN_UNGROUPED][scanTypeIndex - 1][log2BlockWidth][log2BlockHeight][scanPosition];
+            scanOrder[SCAN_UNGROUPED][scanTypeIndex][log2BlockWidth][log2BlockHeight][scanPosition] = scanOrder[SCAN_UNGROUPED][scanTypeIndex - 1][log2BlockWidth][log2BlockHeight][scanPosition];
           }
           continue;
         }
@@ -432,7 +443,7 @@ Void initROM()
 
         for (UInt scanPosition = 0; scanPosition < totalValues; scanPosition++)
         {
-          g_scanOrder[SCAN_UNGROUPED][scanType][log2BlockWidth][log2BlockHeight][scanPosition] = fullBlockScan.GetNextIndex(0, 0);
+          scanOrder[SCAN_UNGROUPED][scanType][log2BlockWidth][log2BlockHeight][scanPosition] = fullBlockScan.GetNextIndex(0, 0);
         }
       }
 
@@ -467,14 +478,14 @@ Void initROM()
       {
         const COEFF_SCAN_TYPE scanType = COEFF_SCAN_TYPE(scanTypeIndex);
 
-        g_scanOrder[SCAN_GROUPED_4x4][scanType][log2BlockWidth][log2BlockHeight] = new UInt[totalValues];
+        scanOrder[SCAN_GROUPED_4x4][scanType][log2BlockWidth][log2BlockHeight] = new UInt[totalValues];
 #if VCEG_AZ07_CTX_RESIDUALCODING
         Bool bHorVerCGScan = (scanType && log2BlockWidth == 3 && log2BlockHeight == 3) ;
         if ( bHorVerCGScan ) 
         {
           for (UInt scanPosition = 0; scanPosition < totalValues; scanPosition++)
           {
-            g_scanOrder[SCAN_GROUPED_4x4][scanType][log2BlockWidth][log2BlockHeight][scanPosition] = g_scanOrder[SCAN_UNGROUPED][scanType][log2BlockWidth][log2BlockHeight][scanPosition];
+            scanOrder[SCAN_GROUPED_4x4][scanType][log2BlockWidth][log2BlockHeight][scanPosition] = scanOrder[SCAN_UNGROUPED][scanType][log2BlockWidth][log2BlockHeight][scanPosition];
           }
         }
         else
@@ -494,7 +505,7 @@ Void initROM()
 
           for (UInt scanPosition = 0; scanPosition < groupSize; scanPosition++)
           {
-            g_scanOrder[SCAN_GROUPED_4x4][scanType][log2BlockWidth][log2BlockHeight][groupOffsetScan + scanPosition] = groupScan.GetNextIndex(groupOffsetX, groupOffsetY);
+            scanOrder[SCAN_GROUPED_4x4][scanType][log2BlockWidth][log2BlockHeight][groupOffsetScan + scanPosition] = groupScan.GetNextIndex(groupOffsetX, groupOffsetY);
           }
 
           fullBlockScan.GetNextIndex(0,0);
@@ -509,7 +520,7 @@ Void initROM()
   }
 }
 
-Void destroyROM()
+Void TComRomScan::destroyROM()
 {
   for(UInt groupTypeIndex = 0; groupTypeIndex < SCAN_NUMBER_OF_GROUP_TYPES; groupTypeIndex++)
   {
@@ -525,7 +536,7 @@ Void destroyROM()
         for (UInt log2BlockHeight = 0; log2BlockHeight < MAX_CU_DEPTH; log2BlockHeight++)
 #endif
         {
-          delete [] g_scanOrder[groupTypeIndex][scanOrderIndex][log2BlockWidth][log2BlockHeight];
+          delete [] scanOrder[groupTypeIndex][scanOrderIndex][log2BlockWidth][log2BlockHeight];
         }
       }
     }
@@ -535,10 +546,6 @@ Void destroyROM()
 // ====================================================================================================================
 // Data structure related table & variable
 // ====================================================================================================================
-UInt g_auiZscanToRaster [ MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH ] = { 0, };
-UInt g_auiRasterToZscan [ MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH ] = { 0, };
-UInt g_auiRasterToPelX  [ MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH ] = { 0, };
-UInt g_auiRasterToPelY  [ MAX_NUM_PART_IDXS_IN_CTU_WIDTH*MAX_NUM_PART_IDXS_IN_CTU_WIDTH ] = { 0, };
 
 #if !JVET_C0024_QTBT
 const UInt g_auiPUOffset[NUMBER_OF_PART_SIZES] = { 0, 8, 4, 4, 2, 10, 1, 5};
@@ -559,7 +566,7 @@ const UInt g_uiLastCtx[ 28 ]    =         //!!!!to be modified for when COM16_C8
 };
 #endif
 #endif
-Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
+Void TComRomScan::initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
 {
   Int iStride = 1 << ( iMaxDepth - 1 );
 
@@ -578,7 +585,7 @@ Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpui
   }
 }
 
-Void initRasterToZscan ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
+Void TComRomScan::initRasterToZscan ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
 {
   UInt  uiMinCUWidth  = uiMaxCUWidth  >> ( uiMaxDepth - 1 );
   UInt  uiMinCUHeight = uiMaxCUHeight >> ( uiMaxDepth - 1 );
@@ -588,16 +595,16 @@ Void initRasterToZscan ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth 
 
   for ( UInt i = 0; i < uiNumPartInWidth*uiNumPartInHeight; i++ )
   {
-    g_auiRasterToZscan[ g_auiZscanToRaster[i] ] = i;
+    auiRasterToZscan[ auiZscanToRaster[i] ] = i;
   }
 }
 
-Void initRasterToPelXY ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
+Void TComRomScan::initRasterToPelXY ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
 {
   UInt    i;
 
-  UInt* uiTempX = &g_auiRasterToPelX[0];
-  UInt* uiTempY = &g_auiRasterToPelY[0];
+  UInt* uiTempX = &auiRasterToPelX[0];
+  UInt* uiTempY = &auiRasterToPelY[0];
 
   UInt  uiMinCUWidth  = uiMaxCUWidth  >> ( uiMaxDepth - 1 );
   UInt  uiMinCUHeight = uiMaxCUHeight >> ( uiMaxDepth - 1 );
@@ -3279,13 +3286,6 @@ UChar g_NonMPM[257] = { 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4,
 // ====================================================================================================================
 // Scanning order & context model mapping
 // ====================================================================================================================
-
-// scanning order table
-#if COM16_C806_T64
-UInt* g_scanOrder[SCAN_NUMBER_OF_GROUP_TYPES][SCAN_NUMBER_OF_TYPES][ MAX_LOG2_TU_SIZE_PLUS_ONE ][ MAX_LOG2_TU_SIZE_PLUS_ONE ];
-#else
-UInt* g_scanOrder[SCAN_NUMBER_OF_GROUP_TYPES][SCAN_NUMBER_OF_TYPES][ MAX_CU_DEPTH ][ MAX_CU_DEPTH ];
-#endif
 
 const UInt ctxIndMap4x4[4*4] =
 {
