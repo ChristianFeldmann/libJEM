@@ -90,6 +90,10 @@ TDecGop::TDecGop()
 #endif
   }
 #endif
+
+#if COM16_C806_ALF_TEMPPRED_NUM
+  iFirstLoop = 0;
+#endif
 }
 
 TDecGop::~TDecGop()
@@ -200,7 +204,6 @@ Void TDecGop::decompressSlice(TComInputBitstream* pcBitstream, TComPic* pcPic
     m_pcAdaptiveLoopFilter->allocALFParam(&m_cAlfParam);
     m_pcAdaptiveLoopFilter->resetALFParam(&m_cAlfParam);
 #if COM16_C806_ALF_TEMPPRED_NUM
-    static int iFirstLoop = 0;
     for( Int i = 0; i < COM16_C806_ALF_TEMPPRED_NUM && !iFirstLoop; i++ )
     {
 #if JVET_E0104_ALF_TEMP_SCALABILITY

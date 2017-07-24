@@ -98,6 +98,10 @@ private:
 #endif
 #endif
 
+#if COM16_C806_ALF_TEMPPRED_NUM
+  int iFirstLoop;
+#endif
+
 public:
   TDecGop();
   virtual ~TDecGop();
