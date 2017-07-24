@@ -135,7 +135,7 @@ public:
   // create / destroy
   // ------------------------------------------------------------------------------------------------------------------
 
-  Void    create( UInt uiNumPartition, TComRomScan *scan );
+  Void    create( UInt uiNumPartition );
   Void    destroy();
 
   // ------------------------------------------------------------------------------------------------------------------
@@ -143,6 +143,8 @@ public:
   // ------------------------------------------------------------------------------------------------------------------
 
   Void    clearMvField();
+
+  void setTComRomScan(TComRomScan *scan) { romScan = scan; }
 
 #if JVET_C0024_QTBT
   Void    clearCtuMvField();

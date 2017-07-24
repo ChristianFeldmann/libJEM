@@ -370,7 +370,7 @@ Void TComDataCU::create( ChromaFormat chromaFormatIDC, UInt uiNumPartition, UInt
 
     for(UInt i=0; i<NUM_REF_PIC_LIST_01; i++)
     {
-      m_acCUMvField[i].create( uiNumPartition, romScan );
+      m_acCUMvField[i].create( uiNumPartition );
 #if JVET_C0024_QTBT
       UInt uiCUNumPart = uiCUWidth*uiCUHeight /(unitSize*unitSize);
       //create big buffer since the BT not follow zorder,but set the buffer size as CU size
@@ -394,8 +394,8 @@ Void TComDataCU::create( ChromaFormat chromaFormatIDC, UInt uiNumPartition, UInt
   }
 
 #if VCEG_AZ07_FRUC_MERGE
-  m_acFRUCUniLateralMVField[0].create( uiNumPartition, romScan );
-  m_acFRUCUniLateralMVField[1].create( uiNumPartition, romScan );
+  m_acFRUCUniLateralMVField[0].create( uiNumPartition );
+  m_acFRUCUniLateralMVField[1].create( uiNumPartition );
 #if JVET_C0024_QTBT
   UInt uiCUNumPart = uiCUWidth*uiCUHeight /(unitSize*unitSize);
   //create big buffer since the BT not follow zorder,but set the buffer size as CU size
@@ -404,6 +404,14 @@ Void TComDataCU::create( ChromaFormat chromaFormatIDC, UInt uiNumPartition, UInt
 #endif
 #endif
 
+  for (int i = 0; i < 2; i++)
+  {
+    m_acCUMvField[i].setTComRomScan(scan);
+#if VCEG_AZ07_FRUC_MERGE
+    m_acFRUCUniLateralMVField[i].setTComRomScan(scan);
+#endif
+  }
+  
   // create motion vector fields
 
   m_pCtuAboveLeft      = NULL;

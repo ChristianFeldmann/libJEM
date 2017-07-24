@@ -54,7 +54,7 @@
 // Create / destroy
 // --------------------------------------------------------------------------------------------------------------------
 
-Void TComCUMvField::create( UInt uiNumPartition, TComRomScan *scan )
+Void TComCUMvField::create( UInt uiNumPartition )
 {
   assert(m_pcMv     == NULL);
   assert(m_pcMvd    == NULL);
@@ -65,7 +65,6 @@ Void TComCUMvField::create( UInt uiNumPartition, TComRomScan *scan )
   m_piRefIdx = new Char  [ uiNumPartition ];
 
   m_uiNumPartition = uiNumPartition;
-  romScan = scan;
 }
 
 Void TComCUMvField::destroy()

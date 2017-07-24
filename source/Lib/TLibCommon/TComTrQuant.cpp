@@ -6287,7 +6287,7 @@ Void xITrMxN(Int bitDepth, TCoeff *coeff, TCoeff *block, Int iWidth, Int iHeight
 #else
 Void xITrMxN(Int bitDepth, TCoeff *coeff, TCoeff *block, Int iWidth, Int iHeight, Bool useDST, const Int maxLog2TrDynamicRange
 #if VCEG_AZ08_KLT_COMMON
-    , Bool useKLT
+    , Bool useKLT, Short **eigenVector
 #endif
 )
 #endif
@@ -9007,11 +9007,6 @@ Void TComTrQuant::xIT( const Int channelBitDepth, Bool useDST, TCoeff* plCoef, P
 
   memcpy(coeff, plCoef, (iWidth * iHeight * sizeof(TCoeff)));
 
-#if VCEG_AZ08_KLT_COMMON
-  UInt uiTarDepth = g_aucConvertToBit[iWidth];
-  Short **eigenVector = m_ppsEigenVector[uiTarDepth];
-#endif
-
 #if COM16_C806_EMT
 #if VCEG_AZ08_KLT_COMMON
   if(ucTrIdx!=DCT2_HEVC && useKLT == false)
@@ -9028,17 +9023,29 @@ Void TComTrQuant::xIT( const Int channelBitDepth, Bool useDST, TCoeff* plCoef, P
   else
 #endif
 #if JVET_C0024_ITSKIP
-  xITrMxN( channelBitDepth, coeff, block, iWidth, iHeight, uiSkipWidth, uiSkipHeight, useDST, maxLog2TrDynamicRange
+  {
 #if VCEG_AZ08_KLT_COMMON
-  , useKLT, eigenVector
+    UInt uiTarDepth = g_aucConvertToBit[iWidth];
+    Short **eigenVector = m_ppsEigenVector[uiTarDepth];
 #endif
- );
+    xITrMxN( channelBitDepth, coeff, block, iWidth, iHeight, uiSkipWidth, uiSkipHeight, useDST, maxLog2TrDynamicRange
+#if VCEG_AZ08_KLT_COMMON
+    , useKLT, eigenVector
+#endif
+    );
+  }
 #else
-  xITrMxN( channelBitDepth, coeff, block, iWidth, iHeight, useDST, maxLog2TrDynamicRange
+  {
 #if VCEG_AZ08_KLT_COMMON
-  , useKLT
+    UInt uiTarDepth = g_aucConvertToBit[iWidth];
+    Short **eigenVector = m_ppsEigenVector[uiTarDepth];
 #endif
-  );
+    xITrMxN( channelBitDepth, coeff, block, iWidth, iHeight, useDST, maxLog2TrDynamicRange
+#if VCEG_AZ08_KLT_COMMON
+    , useKLT, eigenVector
+#endif
+    );
+  }
 #endif
 
   for (Int y = 0; y < iHeight; y++)
