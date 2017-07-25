@@ -50,12 +50,11 @@ public:
 #endif
 
     internalsBlockDataValues = 0;
-    pauseInternalsPUPartIdx = -1;
-    pauseInternalsPUSubPartIdx = -1;
     pauseInternalsCUIdx = -1;
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 10; i++)
     {
-      pauseInternalsCUPartIdxRecursive[i] = -1;
+      pauseInternalsCUPartIdxRecursiveQuadTree[i] = -1;
+      pauseInternalsCUPartIdxRecursiveBinaryTree[i] = -1;
       pauseInternalsTUIdxRecursive[i] = -1;
     }
   }
@@ -107,11 +106,12 @@ public:
 
   // If the array is full, we will save which CU, PU or TU we were processing when the array did overflow
   // so that we can continue the next time libJEMDEC_get_internal_info() is called.
-  int pauseInternalsPUPartIdx;
-  int pauseInternalsPUSubPartIdx;
   int pauseInternalsCUIdx;
-  int pauseInternalsCUPartIdxRecursive[5];  // The part index (per depth)
-  int pauseInternalsTUIdxRecursive[5];      // The index (per trDepth)
+  // Ten (10) is just a guess for the array length. This might change in the future or even be not enough. 
+  // Maybe we should use a dynamic map for this.
+  int pauseInternalsCUPartIdxRecursiveQuadTree[10];   // The part index (per depth) of the quadtree
+  int pauseInternalsCUPartIdxRecursiveBinaryTree[10]; // The part index (per binary depth)
+  int pauseInternalsTUIdxRecursive[10];      // The index (per trDepth)
 };
 
 void jemDecoderWrapper::addInternalsBlockData(libJEMDec_BlockValue val)
@@ -626,11 +626,10 @@ extern "C" {
 
   typedef enum
   {
-    /*LIBJEMDEC_CTU_SLICE_INDEX = 0,     ///< The slice index of the CTU
+    LIBJEMDEC_CTU_SLICE_INDEX = 0,     ///< The slice index of the CTU
     LIBJEMDEC_CU_PREDICTION_MODE,      ///< Does the CU use inter (0) or intra(1) prediction?
     LIBJEMDEC_CU_TRQ_BYPASS,           ///< If transquant bypass is enabled, is the transquant bypass flag set?
     LIBJEMDEC_CU_SKIP_FLAG,            ///< Is the CU skip flag set?
-    LIBJEMDEC_CU_PART_MODE,            ///< What is the partition mode of the CU into PUs? 0: SIZE_2Nx2N, 1: SIZE_2NxN, 2: SIZE_Nx2N, 3: SIZE_NxN, 4: SIZE_2NxnU, 5: SIZE_2NxnD, 6: SIZE_nLx2N, 7: SIZE_nRx2N
     LIBJEMDEC_CU_INTRA_MODE_LUMA,      ///< If the CU uses intra prediction, get the intra mode for luma
     LIBJEMDEC_CU_INTRA_MODE_CHROMA,    ///< If the CU uses intra prediction, get the intra mode for chroma
     LIBJEMDEC_CU_ROOT_CBF,             ///< In the CU is inter, get the root coded block flag of the TU
@@ -649,7 +648,7 @@ extern "C" {
     LIBJEMDEC_TU_COEFF_TR_SKIP_Cr,     ///< Get the transform skip flag for chroma V
     LIBJEMDEC_TU_COEFF_ENERGY_Y,       ///< If the root CBF of the TU is not 0, get the coefficient energy of the TU for luma
     LIBJEMDEC_TU_COEFF_ENERGY_CB,      ///< If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma U
-    LIBJEMDEC_TU_COEFF_ENERGY_CR,      ///< If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma V*/
+    LIBJEMDEC_TU_COEFF_ENERGY_CR,      ///< If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma V
     LIBJEMDEC_NUM_TYPES
   } libJEMDec_info_types_idx;
 
@@ -663,11 +662,10 @@ extern "C" {
   {
     switch (idx)
     {
-    /*case LIBJEMDEC_CTU_SLICE_INDEX:      return "CTU Slice Index";
+    case LIBJEMDEC_CTU_SLICE_INDEX:      return "CTU Slice Index";
     case LIBJEMDEC_CU_PREDICTION_MODE:   return "CU Pred Mode";
     case LIBJEMDEC_CU_TRQ_BYPASS:        return "CU TrQuant Bypass";
     case LIBJEMDEC_CU_SKIP_FLAG:         return "CU Skip";
-    case LIBJEMDEC_CU_PART_MODE:         return "CU Part Mode";
     case LIBJEMDEC_CU_INTRA_MODE_LUMA:   return "CU Intra Mode Y";
     case LIBJEMDEC_CU_INTRA_MODE_CHROMA: return "CU Intra Mode C";
     case LIBJEMDEC_CU_ROOT_CBF:          return "CU Root CBF";
@@ -686,7 +684,7 @@ extern "C" {
     case LIBJEMDEC_TU_COEFF_TR_SKIP_Cr:  return "TU TrSkip Cr";
     case LIBJEMDEC_TU_COEFF_ENERGY_Y:    return "TU Coeff Energy Y";
     case LIBJEMDEC_TU_COEFF_ENERGY_CB:   return "TU Coeff Energy Cb";
-    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return "TU Coeff Energy Cr";*/
+    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return "TU Coeff Energy Cr";
     default: return "";
     }
   }
@@ -695,11 +693,10 @@ extern "C" {
   {
     switch (idx)
     {
-    /*case LIBJEMDEC_CTU_SLICE_INDEX:      return LIBJEMDEC_TYPE_RANGE;
+    case LIBJEMDEC_CTU_SLICE_INDEX:      return LIBJEMDEC_TYPE_RANGE;
     case LIBJEMDEC_CU_PREDICTION_MODE:   return LIBJEMDEC_TYPE_FLAG;
     case LIBJEMDEC_CU_TRQ_BYPASS:        return LIBJEMDEC_TYPE_FLAG;
     case LIBJEMDEC_CU_SKIP_FLAG:         return LIBJEMDEC_TYPE_FLAG;
-    case LIBJEMDEC_CU_PART_MODE:         return LIBJEMDEC_TYPE_RANGE;
     case LIBJEMDEC_CU_INTRA_MODE_LUMA:   return LIBJEMDEC_TYPE_INTRA_DIR;
     case LIBJEMDEC_CU_INTRA_MODE_CHROMA: return LIBJEMDEC_TYPE_INTRA_DIR;
     case LIBJEMDEC_CU_ROOT_CBF:          return LIBJEMDEC_TYPE_FLAG;
@@ -718,7 +715,7 @@ extern "C" {
     case LIBJEMDEC_TU_COEFF_TR_SKIP_Cr:  return LIBJEMDEC_TYPE_FLAG;
     case LIBJEMDEC_TU_COEFF_ENERGY_Y:    return LIBJEMDEC_TYPE_RANGE;
     case LIBJEMDEC_TU_COEFF_ENERGY_CB:   return LIBJEMDEC_TYPE_RANGE;
-    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return LIBJEMDEC_TYPE_RANGE;*/
+    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return LIBJEMDEC_TYPE_RANGE;
     default: return LIBJEMDEC_TYPE_UNKNOWN;
     }
   }
@@ -727,22 +724,23 @@ extern "C" {
   {
     switch (idx)
     {
-    /*case LIBJEMDEC_CTU_SLICE_INDEX:      return 10;
-    case LIBJEMDEC_CU_PART_MODE:         return 7;
+    case LIBJEMDEC_CTU_SLICE_INDEX:      return 10;
+    case LIBJEMDEC_CU_INTRA_MODE_LUMA:   return NUM_INTRA_MODE;
+    case LIBJEMDEC_CU_INTRA_MODE_CHROMA: return NUM_INTRA_MODE;
     case LIBJEMDEC_PU_MERGE_INDEX:       return 6;
     case LIBJEMDEC_PU_REFERENCE_POC_0:   return 16;
     case LIBJEMDEC_PU_REFERENCE_POC_1:   return 16;
     case LIBJEMDEC_TU_COEFF_ENERGY_Y:    return 1000;
     case LIBJEMDEC_TU_COEFF_ENERGY_CB:   return 1000;
-    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return 1000;*/
-    default: return LIBJEMDEC_TYPE_UNKNOWN;
+    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return 1000;
+    default: return -1;
     }
   }
 
   JEM_DEC_API unsigned int libJEMDEC_get_internal_type_vector_scaling(unsigned int idx)
   {
-    /*if (idx == LIBJEMDEC_PU_MV_0 || idx == LIBJEMDEC_PU_MV_1)
-      return 4;*/
+    if (idx == LIBJEMDEC_PU_MV_0 || idx == LIBJEMDEC_PU_MV_1)
+      return 4;
     return 1;
   }
 
@@ -750,11 +748,10 @@ extern "C" {
   {
     switch (idx)
     {
-    /*case LIBJEMDEC_CTU_SLICE_INDEX:      return "The slice index of the CTU"; break;
+    case LIBJEMDEC_CTU_SLICE_INDEX:      return "The slice index of the CTU"; break;
     case LIBJEMDEC_CU_PREDICTION_MODE:   return "Does the CU use inter (0) or intra(1) prediction?"; break;
     case LIBJEMDEC_CU_TRQ_BYPASS:        return "If transquant bypass is enabled, is the transquant bypass flag set?"; break;
     case LIBJEMDEC_CU_SKIP_FLAG:         return "Is the CU skip flag set?"; break;
-    case LIBJEMDEC_CU_PART_MODE:         return "What is the partition mode of the CU into PUs? 0: SIZE_2Nx2N, 1: SIZE_2NxN, 2: SIZE_Nx2N, 3: SIZE_NxN, 4: SIZE_2NxnU, 5: SIZE_2NxnD, 6: SIZE_nLx2N, 7: SIZE_nRx2N"; break;
     case LIBJEMDEC_CU_INTRA_MODE_LUMA:   return "If the CU uses intra prediction, get the intra mode for luma"; break;
     case LIBJEMDEC_CU_INTRA_MODE_CHROMA: return "If the CU uses intra prediction, get the intra mode for chroma"; break;
     case LIBJEMDEC_CU_ROOT_CBF:          return "In the CU is inter, get the root coded block flag of the TU"; break;
@@ -773,143 +770,72 @@ extern "C" {
     case LIBJEMDEC_TU_COEFF_TR_SKIP_Cr:  return "Get the transform skip flag for chroma V"; break;
     case LIBJEMDEC_TU_COEFF_ENERGY_Y:    return "If the root CBF of the TU is not 0, get the coefficient energy of the TU for luma"; break;
     case LIBJEMDEC_TU_COEFF_ENERGY_CB:   return "If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma U"; break;
-    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return "If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma V"; break;*/
+    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return "If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma V"; break;
     default: return ""; break;
     }
   }
 
-  //bool addValuesForPUs(jemDecoderWrapper *d, TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, unsigned int type)
-  //{
-  //  PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
-  //  UInt uiNumPU = ( ePartSize == SIZE_2Nx2N ? 1 : ( ePartSize == SIZE_NxN ? 4 : 2 ) );
-  //  UInt uiPUOffset = ( g_auiPUOffset[UInt( ePartSize )] << ( ( pcCU->getSlice()->getSPS()->getMaxTotalCUDepth() - uiDepth ) << 1 ) ) >> 4;
+  bool addValuesForPUs(jemDecoderWrapper *d, TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, unsigned int type)
+  {
+    // Is there more space in the cache?
+    if (d->internalsBlockDataFull())
+      return false;
 
-  //  TComRom::TComRomScan *scan = pcCU->getRomScan();
-  //  const int cuWidth = pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth;
-  //  const int cuHeight = pcCU->getSlice()->getSPS()->getMaxCUHeight() >> uiDepth;
-  //  const int cuX = pcCU->getCUPelX() + scan->auiRasterToPelX[ scan->auiZscanToRaster[uiAbsPartIdx] ];
-  //  const int cuY = pcCU->getCUPelY() + scan->auiRasterToPelY[ scan->auiZscanToRaster[uiAbsPartIdx] ];
+    TComRomScan *romScan = pcCU->getRomScan();
+    const int cuX = pcCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
+    const int cuY = pcCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
+        
+    // Set the size and position of the PU
+    libJEMDec_BlockValue b;
+    b.x = cuX;
+    b.y = cuY;
+    b.w = uiWidth;
+    b.h = uiHeight;
+    
+    // Get the value that we want to save for this PU
+    if (type == LIBJEMDEC_PU_MERGE_FLAG)
+      b.value = pcCU->getMergeFlag(uiAbsPartIdx) ? 1 : 0;
+    if (type == LIBJEMDEC_PU_MERGE_INDEX && pcCU->getMergeFlag(uiAbsPartIdx))
+      b.value = (int)pcCU->getMergeIndex(uiAbsPartIdx);
+    if (type == LIBJEMDEC_PU_UNI_BI_PREDICTION)
+    {
+      int intraDir = (int)pcCU->getInterDir(uiAbsPartIdx);
+      b.value = (intraDir == 3) ? 1 : 0;
+    }
+    if (type == LIBJEMDEC_PU_REFERENCE_POC_0 || type == LIBJEMDEC_PU_REFERENCE_POC_1)
+    {
+      RefPicList list = (type == LIBJEMDEC_PU_REFERENCE_POC_0) ? REF_PIC_LIST_0 : REF_PIC_LIST_1;
+      if (!(pcCU->getInterDir(uiAbsPartIdx) & (1 << list)))
+        // We are looking for the reference POC for list 0/1 but this PU does not use list 0/1
+        return true;
 
-  //  UInt uiPartIdx = 0;
-  //  UInt uiSubPartIdx = uiAbsPartIdx;
-  //  if (d->pauseInternalsPUPartIdx != -1 && d->pauseInternalsPUSubPartIdx != -1)
-  //  {
-  //    // We are continuing parsing
-  //    uiPartIdx = d->pauseInternalsPUPartIdx;
-  //    uiSubPartIdx = d->pauseInternalsPUSubPartIdx;
-  //    d->pauseInternalsPUPartIdx = -1;
-  //    d->pauseInternalsPUSubPartIdx = -1;
-  //  }
+      Int refIdx = pcCU->getCUMvField(list)->getRefIdx(uiAbsPartIdx);
+      Int refPOC = pcCU->getSlice()->getRefPic(list, refIdx)->getPOC();
+      Int curPOC = pcCU->getPic()->getPOC();
+      b.value = refPOC - curPOC;
+      if (b.value < -16)
+        b.value = -16;
+      else if (b.value > 16)
+        b.value = 16;
+    }
+    if (type == LIBJEMDEC_PU_MV_0 || type == LIBJEMDEC_PU_MV_1)
+    {
+      RefPicList list = (type == LIBJEMDEC_PU_MV_0) ? REF_PIC_LIST_0 : REF_PIC_LIST_1;
+      if (!(pcCU->getInterDir(uiAbsPartIdx) & (1 << list)))
+        // We are looking for motion vectors for list 0/1 but this PU does not use list 0/1
+        return true;
 
-  //  for (; uiPartIdx < uiNumPU; uiPartIdx++, uiSubPartIdx += uiPUOffset)
-  //  {
-  //    // Before we get the block data, check if the value cache is full
-  //    if (d->internalsBlockDataFull())
-  //    {
-  //      // Cache is full, save the position of the PU so that we can continue in the next call
-  //      d->pauseInternalsPUPartIdx = uiPartIdx;
-  //      d->pauseInternalsPUSubPartIdx = uiSubPartIdx;
-  //      return false;
-  //    }
+      b.value  = pcCU->getCUMvField(list)->getMv(uiAbsPartIdx).getHor();
+      b.value2 = pcCU->getCUMvField(list)->getMv(uiAbsPartIdx).getVer();
+    }
 
-  //    // Set the size and position of the PU
-  //    libJEMDec_BlockValue b;
-  //    switch (ePartSize)
-  //    {
-  //    case SIZE_2NxN:
-  //      b.w = cuWidth;
-  //      b.h = cuHeight >> 1;
-  //      b.x = cuX;
-  //      b.y = (uiPartIdx == 0) ? cuY : cuY + b.h;
-  //      break;
-  //    case SIZE_Nx2N:
-  //      b.w = cuWidth >> 1;
-  //      b.h = cuHeight;
-  //      b.x = (uiPartIdx == 0) ? cuX : cuX + b.w;
-  //      b.y = cuY;
-  //      break;
-  //    case SIZE_NxN:
-  //      b.w = cuWidth >> 1;
-  //      b.h = cuHeight >> 1;
-  //      b.x = (uiPartIdx == 0 || uiPartIdx == 2) ? cuX : cuX + b.w;
-  //      b.y = (uiPartIdx == 0 || uiPartIdx == 1) ? cuY : cuY + b.h;
-  //      break;
-  //    case SIZE_2NxnU:
-  //      b.w = cuWidth;
-  //      b.h = (uiPartIdx == 0) ? (cuHeight >> 2) : ((cuHeight >> 2) + (cuHeight >> 1));
-  //      b.x = cuX;
-  //      b.y = (uiPartIdx == 0) ? cuY : cuY + (cuHeight >> 2);
-  //      break;
-  //    case SIZE_2NxnD:
-  //      b.w = cuWidth;
-  //      b.h = (uiPartIdx == 0) ? ((cuHeight >> 2) + (cuHeight >> 1)) : (cuHeight >> 2);
-  //      b.x = cuX;
-  //      b.y = (uiPartIdx == 0) ? cuY : cuY + (cuHeight >> 2) + (cuHeight >> 1);
-  //      break;
-  //    case SIZE_nLx2N:
-  //      b.w = (uiPartIdx == 0) ? (cuWidth >> 2) : ((cuWidth >> 2) + (cuWidth >> 1));
-  //      b.h = cuHeight;
-  //      b.x = (uiPartIdx == 0) ? cuX : cuX + (cuWidth >> 2);
-  //      b.y = cuY;
-  //      break;
-  //    case SIZE_nRx2N:
-  //      b.w = (uiPartIdx == 0) ? ((cuWidth >> 2) + (cuWidth >> 1)) : (cuWidth >> 2);
-  //      b.h = cuHeight;
-  //      b.x = (uiPartIdx == 0) ? cuX : cuX + (cuWidth >> 2) + (cuWidth >> 1);
-  //      b.y = cuY;
-  //      break;
-  //    case SIZE_2Nx2N:
-  //      b.w = cuWidth;
-  //      b.h = cuHeight;
-  //      b.x = cuX;
-  //      b.y = cuY;
-  //      break;
-  //    default:
-  //      assert(false);
-  //    }
+    // Add the value
+    d->addInternalsBlockData(b);
+    return true;
+  }
 
-  //    // Get the value that we want to save for this PU
-  //    if (type == LIBJEMDEC_PU_MERGE_FLAG)
-  //      b.value = pcCU->getMergeFlag(uiSubPartIdx) ? 1 : 0;
-  //    if (type == LIBJEMDEC_PU_MERGE_INDEX && pcCU->getMergeFlag(uiSubPartIdx))
-  //      b.value = (int)pcCU->getMergeIndex(uiSubPartIdx);
-  //    if (type == LIBJEMDEC_PU_UNI_BI_PREDICTION)
-  //      b.value = (int)pcCU->getInterDir(uiSubPartIdx);
-  //    if (type == LIBJEMDEC_PU_REFERENCE_POC_0 || type == LIBJEMDEC_PU_REFERENCE_POC_1)
-  //    {
-  //      RefPicList list = (type == LIBJEMDEC_PU_REFERENCE_POC_0) ? REF_PIC_LIST_0 : REF_PIC_LIST_1;
-  //      if (!(pcCU->getInterDir(uiSubPartIdx) & (1 << list)))
-  //        // We are looking for the reference POC for list 0/1 but this PU does not use list 0/1
-  //        return true;
-
-  //      Int refIdx = pcCU->getCUMvField(list)->getRefIdx(uiSubPartIdx);
-  //      Int refPOC = pcCU->getSlice()->getRefPic(list, refIdx)->getPOC();
-  //      Int curPOC = pcCU->getPic()->getPOC();
-  //      b.value = refPOC - curPOC;
-  //      if (b.value < -16)
-  //        b.value = -16;
-  //      else if (b.value > 16)
-  //        b.value = 16;
-  //    }
-  //    if (type == LIBJEMDEC_PU_MV_0 || type == LIBJEMDEC_PU_MV_1)
-  //    {
-  //      RefPicList list = (type == LIBJEMDEC_PU_MV_0) ? REF_PIC_LIST_0 : REF_PIC_LIST_1;
-  //      if (!(pcCU->getInterDir(uiSubPartIdx) & (1 << list)))
-  //        // We are looking for motion vectors for list 0/1 but this PU does not use list 0/1
-  //        return true;
-
-  //      b.value  = pcCU->getCUMvField(list)->getMv(uiSubPartIdx).getHor();
-  //      b.value2 = pcCU->getCUMvField(list)->getMv(uiSubPartIdx).getVer();
-  //    }
-
-  //    // Add the value
-  //    d->addInternalsBlockData(b);
-  //  }
-  //  return true;
-  //}
-
-  //bool addValuesForTURecursive(jemDecoderWrapper *d, TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt trDepth, unsigned int typeIdx)
-  //{
+  bool addValuesForTURecursive(jemDecoderWrapper *d, TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt trDepth, unsigned int typeIdx)
+  {
   //  UInt trIdx = pcCU->getTransformIdx(uiAbsPartIdx);
   //  if (trDepth < trIdx)
   //  {
@@ -980,101 +906,168 @@ extern "C" {
   //      b.value = (int)e;
   //  }
   //  d->addInternalsBlockData(b);
-  //  return true;
-  //}
+    return true;
+  }
 
-  //bool addValuesForCURecursively(jemDecoderWrapper *d, TComDataCU* pcLCU, UInt uiAbsPartIdx, UInt uiDepth, unsigned int typeIdx)
-  //{
-  //  TComSlice * pcSlice = pcLCU->getSlice();
-  //  const TComSPS &sps = *(pcSlice->getSPS());
-  //  const TComPPS &pps = *(pcSlice->getPPS());
+  bool addValuesForCURecursively(jemDecoderWrapper *d, TComDataCU* pcLCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, unsigned int typeIdx)
+  {
+    TComSlice * pcSlice = pcLCU->getSlice();
+    const TComSPS &sps = *(pcSlice->getSPS());
+    const TComPPS &pps = *(pcSlice->getPPS());
 
-  //  Bool bBoundary = false;
-  //  TComRom::TComRomScan *scan = pcLCU->getRomScan();
-  //  UInt uiLPelX = pcLCU->getCUPelX() + scan->auiRasterToPelX[scan->auiZscanToRaster[uiAbsPartIdx]];
-  //  UInt uiRPelX = uiLPelX + (sps.getMaxCUWidth() >> uiDepth) - 1;
-  //  UInt uiTPelY = pcLCU->getCUPelY() + scan->auiRasterToPelY[scan->auiZscanToRaster[uiAbsPartIdx]];
-  //  UInt uiBPelY = uiTPelY + (sps.getMaxCUHeight() >> uiDepth) - 1;
+    TComRomScan *romScan = pcLCU->getRomScan();
 
-  //  if ((uiRPelX >= sps.getPicWidthInLumaSamples()) || (uiBPelY >= sps.getPicHeightInLumaSamples()))
-  //  {
-  //    bBoundary = true;
-  //  }
+    assert(JVET_C0024_QTBT == 1);
 
-  //  if (((uiDepth < pcLCU->getDepth(uiAbsPartIdx)) && (uiDepth < sps.getLog2DiffMaxMinCodingBlockSize())) || bBoundary)
-  //  {
-  //    UInt uiNextDepth = uiDepth + 1;
-  //    UInt uiQNumParts = pcLCU->getTotalNumPart() >> (uiNextDepth<<1);
-  //    UInt uiPartIdx = 0;
-  //    if (d->pauseInternalsCUPartIdxRecursive[uiDepth] != -1)
-  //    {
-  //      // Continue retriveal from this point
-  //      uiPartIdx = d->pauseInternalsCUPartIdxRecursive[uiDepth];
-  //      d->pauseInternalsCUPartIdxRecursive[uiDepth] = -1;
-  //    }
-  //    for (; uiPartIdx < 4; uiPartIdx++)
-  //    {
-  //      UInt uiIdx = uiAbsPartIdx + uiPartIdx * uiQNumParts;
-  //      uiLPelX = pcLCU->getCUPelX() + scan->auiRasterToPelX[scan->auiZscanToRaster[uiIdx]];
-  //      uiTPelY = pcLCU->getCUPelY() + scan->auiRasterToPelY[scan->auiZscanToRaster[uiIdx]];
+    UInt uiCTUSize = pcLCU->getSlice()->getSPS()->getCTUSize();
+    if (uiCTUSize>>uiDepth == uiWidth && uiWidth==uiHeight)
+    {
+      // The CU size is still square. We have not started the binary tree yet.
+      UInt uiLPelX   = pcLCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
+      UInt uiTPelY   = pcLCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
+      UInt uiRPelX   = uiLPelX + (sps.getCTUSize()>>uiDepth)  - 1;
+      UInt uiBPelY   = uiTPelY + (sps.getCTUSize()>>uiDepth) - 1;
+      
+      if( ( uiRPelX >= sps.getPicWidthInLumaSamples() ) || ( uiBPelY >= sps.getPicHeightInLumaSamples() ) )
+      {
+        assert(uiDepth < pcLCU->getDepth( uiAbsPartIdx ));
+      }
 
-  //      if ((uiLPelX < sps.getPicWidthInLumaSamples()) && (uiTPelY < sps.getPicHeightInLumaSamples()))
-  //      {
-  //        if (!addValuesForCURecursively(d, pcLCU, uiIdx, uiNextDepth, typeIdx))
-  //        {
-  //          // The cache is full. Save the current part index in the current depth so we can continue from here.
-  //          d->pauseInternalsCUPartIdxRecursive[uiDepth] = uiPartIdx;
-  //          return false;
-  //        }
-  //      }
-  //    }
-  //    return true;
-  //  }
+      if( uiDepth < pcLCU->getDepth( uiAbsPartIdx ) )
+      {
+        // We must split the quadtree further
+        UInt uiPartIdx = 0;
+        if (d->pauseInternalsCUPartIdxRecursiveQuadTree[uiDepth] != -1)
+        {
+          // Continue retriveal from this point
+          uiPartIdx = d->pauseInternalsCUPartIdxRecursiveQuadTree[uiDepth];
+          d->pauseInternalsCUPartIdxRecursiveQuadTree[uiDepth] = -1;
+        }
 
-  //  // We reached the CU
-  //  if (typeIdx == LIBJEMDEC_CU_PREDICTION_MODE || typeIdx == LIBJEMDEC_CU_TRQ_BYPASS || typeIdx == LIBJEMDEC_CU_SKIP_FLAG || typeIdx == LIBJEMDEC_CU_PART_MODE || typeIdx == LIBJEMDEC_CU_INTRA_MODE_LUMA || typeIdx == LIBJEMDEC_CU_INTRA_MODE_CHROMA || typeIdx == LIBJEMDEC_CU_ROOT_CBF)
-  //  {
-  //    if ((typeIdx == LIBJEMDEC_CU_TRQ_BYPASS && !pps.getTransquantBypassEnabledFlag()) ||
-  //        (typeIdx == LIBJEMDEC_CU_INTRA_MODE_LUMA && !pcLCU->isIntra(uiAbsPartIdx)) ||
-  //        (typeIdx == LIBJEMDEC_CU_INTRA_MODE_CHROMA && !pcLCU->isIntra(uiAbsPartIdx)) ||
-  //        (typeIdx == LIBJEMDEC_CU_ROOT_CBF && pcLCU->isInter(uiAbsPartIdx)))
-  //      // There is no data for this CU of this type
-  //      return true;
+        UInt uiNextDepth = uiDepth + 1;
+        UInt uiQNumParts = pcLCU->getTotalNumPart() >> (uiNextDepth<<1);
+        for ( ; uiPartIdx < 4; uiPartIdx++ )
+        {
+          UInt uiIdx = uiAbsPartIdx + uiQNumParts * uiPartIdx;
+          uiLPelX = pcLCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiIdx] ];
+          uiTPelY = pcLCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiIdx] ];
 
-  //    // Is there more space in the cache?
-  //    if (d->internalsBlockDataFull())
-  //      return false;
+          if( ( uiLPelX < sps.getPicWidthInLumaSamples() ) && ( uiTPelY < sps.getPicHeightInLumaSamples() ) )
+          {
+            if (!addValuesForCURecursively(d, pcLCU, uiIdx, uiNextDepth, uiWidth>>1, uiHeight>>1 , typeIdx))
+            {
+              // The cache is full. Save the current part index in the current depth so we can continue from here.
+              d->pauseInternalsCUPartIdxRecursiveQuadTree[uiDepth] = uiPartIdx;
+              return false;
+            }
+          }
+          else
+          {
+            pcLCU->getPic()->addCodedAreaInCTU(uiWidth*uiHeight>>2);
+          }
+        }
+        return true;
+      }
+    }
 
-  //    libJEMDec_BlockValue b;
-  //    b.x = uiLPelX;
-  //    b.y = uiTPelY;
-  //    b.w = (sps.getMaxCUWidth() >>uiDepth);
-  //    b.h = (sps.getMaxCUHeight() >>uiDepth);
-  //    if (typeIdx == LIBJEMDEC_CU_PREDICTION_MODE)
-  //      b.value = int(pcLCU->getPredictionMode(uiAbsPartIdx));
-  //    else if (typeIdx == LIBJEMDEC_CU_TRQ_BYPASS)
-  //      b.value = pcLCU->getCUTransquantBypass(uiAbsPartIdx) ? 1 : 0;
-  //    else if (typeIdx == LIBJEMDEC_CU_SKIP_FLAG)
-  //      b.value =  pcLCU->isSkipped(uiAbsPartIdx) ? 1 : 0;
-  //    else if (typeIdx == LIBJEMDEC_CU_PART_MODE)
-  //      b.value = (int)pcLCU->getPartitionSize(uiAbsPartIdx);
-  //    else if (typeIdx == LIBJEMDEC_CU_INTRA_MODE_LUMA)
-  //      b.value = (int)pcLCU->getIntraDir(CHANNEL_TYPE_LUMA, uiAbsPartIdx);
-  //    else if (typeIdx == LIBJEMDEC_CU_INTRA_MODE_CHROMA)
-  //      b.value = (int)pcLCU->getIntraDir(CHANNEL_TYPE_CHROMA, uiAbsPartIdx);
-  //    else if (typeIdx == LIBJEMDEC_CU_ROOT_CBF)
-  //      b.value = (int)pcLCU->getQtRootCbf(uiAbsPartIdx);
-  //    d->addInternalsBlockData(b);
-  //  }
-  //  else if (pcLCU->isInter(uiAbsPartIdx) && (typeIdx == LIBJEMDEC_PU_MERGE_FLAG || typeIdx == LIBJEMDEC_PU_UNI_BI_PREDICTION || typeIdx == LIBJEMDEC_PU_REFERENCE_POC_0 || typeIdx == LIBJEMDEC_PU_MV_0 || typeIdx == LIBJEMDEC_PU_REFERENCE_POC_1 || typeIdx == LIBJEMDEC_PU_MV_1))
-  //    // Set values for every PU
-  //    return addValuesForPUs(d, pcLCU, uiAbsPartIdx, uiDepth, typeIdx);
-  //  else if (typeIdx == LIBJEMDEC_TU_CBF_Y || typeIdx == LIBJEMDEC_TU_CBF_CB || typeIdx == LIBJEMDEC_TU_CBF_CR || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_Y || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_CB || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_CR || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Y || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cb || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cr)
-  //    return addValuesForTURecursive(d, pcLCU, uiAbsPartIdx, uiDepth, 0, typeIdx);
+    // Splitting the quadtree is done. Now, we might apply the binary split.
+    UInt uiBTDepth = pcLCU->getBTDepth(uiAbsPartIdx, uiWidth, uiHeight);
 
-  //  // This code line should never be reached.
-  //  return true;
-  //}
+    if (pcLCU->getBTSplitModeForBTDepth(uiAbsPartIdx, uiBTDepth)==1)
+    {
+      // Binary split horizontally
+      UInt uiPartUnitIdx = 0;
+      if (d->pauseInternalsCUPartIdxRecursiveBinaryTree[uiBTDepth] != -1)
+      {
+        // Continue retriveal from this point
+        uiPartUnitIdx = d->pauseInternalsCUPartIdxRecursiveBinaryTree[uiBTDepth];
+        d->pauseInternalsCUPartIdxRecursiveBinaryTree[uiBTDepth] = -1;
+      }
+
+      for ( ; uiPartUnitIdx < 2; uiPartUnitIdx++ )
+      {
+        if (uiPartUnitIdx==1)
+        {
+          uiAbsPartIdx = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiAbsPartIdx] + (uiHeight>>1)/pcLCU->getPic()->getMinCUHeight()*pcLCU->getPic()->getNumPartInCtuWidth()];
+        }
+        if (!addValuesForCURecursively(d, pcLCU, uiAbsPartIdx, uiDepth, uiWidth, uiHeight>>1 , typeIdx))
+        {
+          // The cache is full. Save the current part index in the current depth so we can continue from here.
+          d->pauseInternalsCUPartIdxRecursiveBinaryTree[uiBTDepth] = uiPartUnitIdx;
+          return false;
+        }
+      }
+      return true;
+    }
+    else if (pcLCU->getBTSplitModeForBTDepth(uiAbsPartIdx, uiBTDepth)==2)
+    {
+      // Binary split vertically
+      UInt uiPartUnitIdx = 0;
+      if (d->pauseInternalsCUPartIdxRecursiveBinaryTree[uiBTDepth] != -1)
+      {
+        // Continue retriveal from this point
+        uiPartUnitIdx = d->pauseInternalsCUPartIdxRecursiveBinaryTree[uiBTDepth];
+        d->pauseInternalsCUPartIdxRecursiveBinaryTree[uiBTDepth] = -1;
+      }
+
+      for ( ; uiPartUnitIdx < 2; uiPartUnitIdx++ )
+      {
+        if (uiPartUnitIdx==1)
+        {
+          uiAbsPartIdx = romScan->auiRasterToZscan[romScan->auiZscanToRaster[uiAbsPartIdx] + (uiWidth>>1)/pcLCU->getPic()->getMinCUWidth()];
+        }
+        if (!addValuesForCURecursively(d, pcLCU, uiAbsPartIdx, uiDepth, uiWidth>>1, uiHeight , typeIdx))
+        {
+          // The cache is full. Save the current part index in the current depth so we can continue from here.
+          d->pauseInternalsCUPartIdxRecursiveBinaryTree[uiBTDepth] = uiPartUnitIdx;
+          return false;
+        }
+      }
+      return true;
+    }
+  
+    // We reached the CU
+    if (typeIdx == LIBJEMDEC_CU_PREDICTION_MODE || typeIdx == LIBJEMDEC_CU_TRQ_BYPASS || typeIdx == LIBJEMDEC_CU_SKIP_FLAG || typeIdx == LIBJEMDEC_CU_INTRA_MODE_LUMA || typeIdx == LIBJEMDEC_CU_INTRA_MODE_CHROMA || typeIdx == LIBJEMDEC_CU_ROOT_CBF)
+    {
+      if ((typeIdx == LIBJEMDEC_CU_TRQ_BYPASS && !pps.getTransquantBypassEnableFlag()) ||
+          (typeIdx == LIBJEMDEC_CU_INTRA_MODE_LUMA && !pcLCU->isIntra(uiAbsPartIdx)) ||
+          (typeIdx == LIBJEMDEC_CU_INTRA_MODE_CHROMA && !pcLCU->isIntra(uiAbsPartIdx)) ||
+          (typeIdx == LIBJEMDEC_CU_ROOT_CBF && pcLCU->isInter(uiAbsPartIdx)))
+        // There is no data for this CU of this type
+        return true;
+
+      // Is there more space in the cache?
+      if (d->internalsBlockDataFull())
+        return false;
+
+      libJEMDec_BlockValue b;
+      b.x = pcLCU->getCUPelX() + romScan->auiRasterToPelX[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
+      b.y = pcLCU->getCUPelY() + romScan->auiRasterToPelY[ romScan->auiZscanToRaster[uiAbsPartIdx] ];
+      b.w = uiWidth;
+      b.h = uiHeight;
+      if (typeIdx == LIBJEMDEC_CU_PREDICTION_MODE)
+        b.value = int(pcLCU->getPredictionMode(uiAbsPartIdx));
+      else if (typeIdx == LIBJEMDEC_CU_TRQ_BYPASS)
+        b.value = pcLCU->getCUTransquantBypass(uiAbsPartIdx) ? 1 : 0;
+      else if (typeIdx == LIBJEMDEC_CU_SKIP_FLAG)
+        b.value =  pcLCU->isSkipped(uiAbsPartIdx) ? 1 : 0;
+      else if (typeIdx == LIBJEMDEC_CU_INTRA_MODE_LUMA)
+        b.value = (int)pcLCU->getIntraDir(CHANNEL_TYPE_LUMA, uiAbsPartIdx);
+      else if (typeIdx == LIBJEMDEC_CU_INTRA_MODE_CHROMA)
+        b.value = (int)pcLCU->getIntraDir(CHANNEL_TYPE_CHROMA, uiAbsPartIdx);
+      else if (typeIdx == LIBJEMDEC_CU_ROOT_CBF)
+        b.value = (int)pcLCU->getQtRootCbf(uiAbsPartIdx);
+      d->addInternalsBlockData(b);
+    }
+    else if (pcLCU->isInter(uiAbsPartIdx) && (typeIdx == LIBJEMDEC_PU_MERGE_FLAG || typeIdx == LIBJEMDEC_PU_MERGE_INDEX || typeIdx == LIBJEMDEC_PU_UNI_BI_PREDICTION || typeIdx == LIBJEMDEC_PU_REFERENCE_POC_0 || typeIdx == LIBJEMDEC_PU_MV_0 || typeIdx == LIBJEMDEC_PU_REFERENCE_POC_1 || typeIdx == LIBJEMDEC_PU_MV_1))
+    // Set values for every PU
+      return addValuesForPUs(d, pcLCU, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, typeIdx);
+    else if (typeIdx == LIBJEMDEC_TU_CBF_Y || typeIdx == LIBJEMDEC_TU_CBF_CB || typeIdx == LIBJEMDEC_TU_CBF_CR || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_Y || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_CB || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_CR || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Y || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cb || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cr)
+      return addValuesForTURecursive(d, pcLCU, uiAbsPartIdx, uiDepth, 0, typeIdx);
+
+    // This code line should never be reached.
+    return true;
+  }
 
   JEM_DEC_API libJEMDec_BlockValue *libJEMDEC_get_internal_info(libJEMDec_context *decCtx, libJEMDec_picture *pic, unsigned int typeIdx, unsigned int &nrValues, bool &callAgain)
   {
@@ -1097,55 +1090,55 @@ extern "C" {
     if (s == NULL)
       return NULL;
 
-    //int nrCU = s->getNumberOfCtusInFrame();
-    //int i = 0;
-    //if (d->pauseInternalsCUIdx != -1)
-    //{
-    //  // Continue from the given index.
-    //  i = d->pauseInternalsCUIdx;
-    //  d->pauseInternalsCUIdx = -1;
-    //}
+    int nrCU = s->getNumberOfCtusInFrame();
+    int i = 0;
+    if (d->pauseInternalsCUIdx != -1)
+    {
+      // Continue from the given index.
+      i = d->pauseInternalsCUIdx;
+      d->pauseInternalsCUIdx = -1;
+    }
 
-    // Retrieving of internals not yet supported.
-    //for (; i < nrCU; i++)
-    //{
-    //  TComDataCU *pcLCU = s->getCtu(i);
+    for (; i < nrCU; i++)
+    {
+      TComDataCU *pcLCU = s->getCtu(i);
+      UInt uiCTUSize = pcLCU->getSlice()->getSPS()->getCTUSize();
 
-    //  if ((typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Y || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cb || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cr) && pcLCU->getSlice()->getPPS()->getUseTransformSkip())
-    //    // Transform skip not enabled for this slice
-    //    continue;
+      if ((typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Y || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cb || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cr) && pcLCU->getSlice()->getPPS()->getUseTransformSkip())
+        // Transform skip not enabled for this slice
+        continue;
 
-    //  if (typeIdx == LIBJEMDEC_CTU_SLICE_INDEX)
-    //  {
-    //    if (d->internalsBlockDataFull())
-    //    {
-    //      // Cache is full. Remember the CU index so we can continue from here.
-    //      d->pauseInternalsCUIdx = i;
-    //      nrValues = d->internalsBlockDataValues;
-    //      callAgain = true;
-    //      return d->internalsBlockData;
-    //    }
+      if (typeIdx == LIBJEMDEC_CTU_SLICE_INDEX)
+      {
+        if (d->internalsBlockDataFull())
+        {
+          // Cache is full. Remember the CU index so we can continue from here.
+          d->pauseInternalsCUIdx = i;
+          nrValues = d->internalsBlockDataValues;
+          callAgain = true;
+          return d->internalsBlockData;
+        }
 
-    //    libJEMDec_BlockValue b;
-    //    b.x = pcLCU->getCUPelX();
-    //    b.y = pcLCU->getCUPelY();
-    //    b.w = pcLCU->getSlice()->getSPS()->getMaxCUWidth();
-    //    b.h = pcLCU->getSlice()->getSPS()->getMaxCUHeight();
-    //    b.value = (int)pcLCU->getPic()->getCurrSliceIdx();
-    //    d->addInternalsBlockData(b);
-    //  }
-    //  else
-    //  {
-    //    if (!addValuesForCURecursively(d, pcLCU, 0, 0, typeIdx))
-    //    {
-    //      // Cache is full. Remember the CU index so we can continue from here.
-    //      d->pauseInternalsCUIdx = i;
-    //      nrValues = d->internalsBlockDataValues;
-    //      callAgain = true;
-    //      return d->internalsBlockData;
-    //    }
-    //  }
-    //}
+        libJEMDec_BlockValue b;
+        b.x = pcLCU->getCUPelX();
+        b.y = pcLCU->getCUPelY();
+        b.w = uiCTUSize;
+        b.h = uiCTUSize;
+        b.value = (int)pcLCU->getPic()->getCurrSliceIdx();
+        d->addInternalsBlockData(b);
+      }
+      else
+      {
+        if (!addValuesForCURecursively(d, pcLCU, 0, 0, uiCTUSize, uiCTUSize, typeIdx))
+        {
+          // Cache is full. Remember the CU index so we can continue from here.
+          d->pauseInternalsCUIdx = i;
+          nrValues = d->internalsBlockDataValues;
+          callAgain = true;
+          return d->internalsBlockData;
+        }
+      }
+    }
 
     // Processing of all values is finished. The cache is not full.
     nrValues = d->internalsBlockDataValues;
