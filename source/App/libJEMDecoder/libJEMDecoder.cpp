@@ -640,7 +640,7 @@ extern "C" {
     LIBJEMDEC_PU_MV_0,                 ///< If the PU uses inter prediction, what is the motion vector of list 0?
     LIBJEMDEC_PU_REFERENCE_POC_1,      ///< If the PU uses bi-directions inter prediction, what is the reference POC of list 1?
     LIBJEMDEC_PU_MV_1,                 ///< If the PU uses bi-directions inter prediction, what is the motion vector of list 1?
-    LIBJEMDEC_TU_CBF_Y,                ///< Get the coded block flag for luma
+    /*LIBJEMDEC_TU_CBF_Y,                ///< Get the coded block flag for luma
     LIBJEMDEC_TU_CBF_CB,               ///< Get the coded block flag for chroma U
     LIBJEMDEC_TU_CBF_CR,               ///< Get the coded block flag for chroma V
     LIBJEMDEC_TU_COEFF_TR_SKIP_Y,      ///< Get the transform skip flag for luma
@@ -648,7 +648,7 @@ extern "C" {
     LIBJEMDEC_TU_COEFF_TR_SKIP_Cr,     ///< Get the transform skip flag for chroma V
     LIBJEMDEC_TU_COEFF_ENERGY_Y,       ///< If the root CBF of the TU is not 0, get the coefficient energy of the TU for luma
     LIBJEMDEC_TU_COEFF_ENERGY_CB,      ///< If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma U
-    LIBJEMDEC_TU_COEFF_ENERGY_CR,      ///< If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma V
+    LIBJEMDEC_TU_COEFF_ENERGY_CR,      ///< If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma V*/
     LIBJEMDEC_NUM_TYPES
   } libJEMDec_info_types_idx;
 
@@ -676,7 +676,7 @@ extern "C" {
     case LIBJEMDEC_PU_MV_0:              return "PU MV 0";
     case LIBJEMDEC_PU_REFERENCE_POC_1:   return "PU Ref POC 1";
     case LIBJEMDEC_PU_MV_1:              return "PU MV 1";
-    case LIBJEMDEC_TU_CBF_Y:             return "TU CBF Y";
+    /*case LIBJEMDEC_TU_CBF_Y:             return "TU CBF Y";
     case LIBJEMDEC_TU_CBF_CB:            return "TU CBF Cb";
     case LIBJEMDEC_TU_CBF_CR:            return "TU CBF Cr";
     case LIBJEMDEC_TU_COEFF_TR_SKIP_Y:   return "TU TrSkip Y";
@@ -684,7 +684,7 @@ extern "C" {
     case LIBJEMDEC_TU_COEFF_TR_SKIP_Cr:  return "TU TrSkip Cr";
     case LIBJEMDEC_TU_COEFF_ENERGY_Y:    return "TU Coeff Energy Y";
     case LIBJEMDEC_TU_COEFF_ENERGY_CB:   return "TU Coeff Energy Cb";
-    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return "TU Coeff Energy Cr";
+    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return "TU Coeff Energy Cr";*/
     default: return "";
     }
   }
@@ -707,7 +707,7 @@ extern "C" {
     case LIBJEMDEC_PU_MV_0:              return LIBJEMDEC_TYPE_VECTOR;
     case LIBJEMDEC_PU_REFERENCE_POC_1:   return LIBJEMDEC_TYPE_RANGE_ZEROCENTER;
     case LIBJEMDEC_PU_MV_1:              return LIBJEMDEC_TYPE_VECTOR;
-    case LIBJEMDEC_TU_CBF_Y:             return LIBJEMDEC_TYPE_FLAG;
+    /*case LIBJEMDEC_TU_CBF_Y:             return LIBJEMDEC_TYPE_FLAG;
     case LIBJEMDEC_TU_CBF_CB:            return LIBJEMDEC_TYPE_FLAG;
     case LIBJEMDEC_TU_CBF_CR:            return LIBJEMDEC_TYPE_FLAG;
     case LIBJEMDEC_TU_COEFF_TR_SKIP_Y:   return LIBJEMDEC_TYPE_FLAG;
@@ -715,7 +715,7 @@ extern "C" {
     case LIBJEMDEC_TU_COEFF_TR_SKIP_Cr:  return LIBJEMDEC_TYPE_FLAG;
     case LIBJEMDEC_TU_COEFF_ENERGY_Y:    return LIBJEMDEC_TYPE_RANGE;
     case LIBJEMDEC_TU_COEFF_ENERGY_CB:   return LIBJEMDEC_TYPE_RANGE;
-    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return LIBJEMDEC_TYPE_RANGE;
+    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return LIBJEMDEC_TYPE_RANGE;*/
     default: return LIBJEMDEC_TYPE_UNKNOWN;
     }
   }
@@ -730,9 +730,9 @@ extern "C" {
     case LIBJEMDEC_PU_MERGE_INDEX:       return 6;
     case LIBJEMDEC_PU_REFERENCE_POC_0:   return 16;
     case LIBJEMDEC_PU_REFERENCE_POC_1:   return 16;
-    case LIBJEMDEC_TU_COEFF_ENERGY_Y:    return 1000;
+    /*case LIBJEMDEC_TU_COEFF_ENERGY_Y:    return 1000;
     case LIBJEMDEC_TU_COEFF_ENERGY_CB:   return 1000;
-    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return 1000;
+    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return 1000;*/
     default: return -1;
     }
   }
@@ -762,7 +762,7 @@ extern "C" {
     case LIBJEMDEC_PU_MV_0:              return "If the PU uses inter prediction, what is the motion vector of list 0?"; break;
     case LIBJEMDEC_PU_REFERENCE_POC_1:   return "If the PU uses bi-directions inter prediction, what is the reference POC of list 1?"; break;
     case LIBJEMDEC_PU_MV_1:              return "If the PU uses bi-directions inter prediction, what is the motion vector of list 1?"; break;
-    case LIBJEMDEC_TU_CBF_Y:             return "Get the coded block flag for luma"; break;
+    /*case LIBJEMDEC_TU_CBF_Y:             return "Get the coded block flag for luma"; break;
     case LIBJEMDEC_TU_CBF_CB:            return "Get the coded block flag for chroma U"; break;
     case LIBJEMDEC_TU_CBF_CR:            return "Get the coded block flag for chroma V"; break;
     case LIBJEMDEC_TU_COEFF_TR_SKIP_Y:   return "Get the transform skip flag for luma"; break;
@@ -770,7 +770,7 @@ extern "C" {
     case LIBJEMDEC_TU_COEFF_TR_SKIP_Cr:  return "Get the transform skip flag for chroma V"; break;
     case LIBJEMDEC_TU_COEFF_ENERGY_Y:    return "If the root CBF of the TU is not 0, get the coefficient energy of the TU for luma"; break;
     case LIBJEMDEC_TU_COEFF_ENERGY_CB:   return "If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma U"; break;
-    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return "If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma V"; break;
+    case LIBJEMDEC_TU_COEFF_ENERGY_CR:   return "If the root CBF of the TU is not 0, get the coefficient energy of the TU for chroma V"; break;*/
     default: return ""; break;
     }
   }
@@ -1062,8 +1062,8 @@ extern "C" {
     else if (pcLCU->isInter(uiAbsPartIdx) && (typeIdx == LIBJEMDEC_PU_MERGE_FLAG || typeIdx == LIBJEMDEC_PU_MERGE_INDEX || typeIdx == LIBJEMDEC_PU_UNI_BI_PREDICTION || typeIdx == LIBJEMDEC_PU_REFERENCE_POC_0 || typeIdx == LIBJEMDEC_PU_MV_0 || typeIdx == LIBJEMDEC_PU_REFERENCE_POC_1 || typeIdx == LIBJEMDEC_PU_MV_1))
     // Set values for every PU
       return addValuesForPUs(d, pcLCU, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, typeIdx);
-    else if (typeIdx == LIBJEMDEC_TU_CBF_Y || typeIdx == LIBJEMDEC_TU_CBF_CB || typeIdx == LIBJEMDEC_TU_CBF_CR || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_Y || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_CB || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_CR || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Y || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cb || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cr)
-      return addValuesForTURecursive(d, pcLCU, uiAbsPartIdx, uiDepth, 0, typeIdx);
+    /*else if (typeIdx == LIBJEMDEC_TU_CBF_Y || typeIdx == LIBJEMDEC_TU_CBF_CB || typeIdx == LIBJEMDEC_TU_CBF_CR || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_Y || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_CB || typeIdx == LIBJEMDEC_TU_COEFF_ENERGY_CR || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Y || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cb || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cr)
+      return addValuesForTURecursive(d, pcLCU, uiAbsPartIdx, uiDepth, 0, typeIdx);*/
 
     // This code line should never be reached.
     return true;
@@ -1104,9 +1104,9 @@ extern "C" {
       TComDataCU *pcLCU = s->getCtu(i);
       UInt uiCTUSize = pcLCU->getSlice()->getSPS()->getCTUSize();
 
-      if ((typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Y || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cb || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cr) && pcLCU->getSlice()->getPPS()->getUseTransformSkip())
-        // Transform skip not enabled for this slice
-        continue;
+      //if ((typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Y || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cb || typeIdx == LIBJEMDEC_TU_COEFF_TR_SKIP_Cr) && pcLCU->getSlice()->getPPS()->getUseTransformSkip())
+      //  // Transform skip not enabled for this slice
+      //  continue;
 
       if (typeIdx == LIBJEMDEC_CTU_SLICE_INDEX)
       {
